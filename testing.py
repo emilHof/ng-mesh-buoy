@@ -1,6 +1,6 @@
 from digi.xbee.devices import XBeeDevice
 import time
-
+from types import MethodType
 
 
 def listen(self):
@@ -9,7 +9,7 @@ def listen(self):
     message = data
     if message != None:
         print("found a message")
-        return message.data.decode
+        return message.data.decode("utf8")
     else:
         print("no message found")
         print("sleeping...")
@@ -20,9 +20,8 @@ def listen(self):
 xbee = XBeeDevice("/dev/ttyUSB2", 9600)
 xbee.open()
 xbee.send_data_broadcast("hello world")
-
+xbee.listen = MethodType(listen, xbee)
 msg = xbee.listen()
 xbee.close()
-
 
 print(msg)
