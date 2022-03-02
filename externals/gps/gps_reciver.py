@@ -1,12 +1,3 @@
-## Original program based upon Adafruit Ultimate GPS Demo
-## https://github.com/adafruit/Adafruit_CircuitPython_GPS/blob/master/examples/gps_simpletest.py
-##
-## Modifications made by Collete Higgins and Jason Forsyth (forsy2jb@jmu.ed)
-##
-##
-## SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
-## SPDX-License-Identifier: MIT
-# needed to count time
 import time
 # can only be installed via pip install adafruit-circuitpython-gps (at the moment)
 import adafruit_gps
