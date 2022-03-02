@@ -23,7 +23,7 @@ def listen(self):
 
 def open_receiver():
     xbee = radio_maker.make_radio()
-    xbee = XBeeDevice(config.port, config.rate)
+    # xbee = XBeeDevice(config.port, config.rate)
     xbee.listen = MethodType(listen, xbee)
     xbee.open()
     message = xbee.listen()
