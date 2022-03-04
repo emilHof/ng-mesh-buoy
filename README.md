@@ -4,7 +4,7 @@ A common code base for mesh network ready buoys.\
 This repository is undergoing a constant stream of updates. Feel free to check
 out a branch and jump right into building with us!
 
-### How to contribute?
+## How to contribute?
 Clone the repository or any branch of the repository by typing:
 
 `git clone https://github.com/emilHof/ng-mesh-buoy.git`
