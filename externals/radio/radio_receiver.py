@@ -7,6 +7,7 @@ import externals.radio.radio_maker as radio_maker
 
 
 def listen(self):
+
     print("listening...")
     data = self.read_data()
     message = data
