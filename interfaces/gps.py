@@ -20,8 +20,8 @@ def _format_datetime(datetime):
 
 class GPSInterface(Port):
 
-    def __init__(self, specific_type):
-        super().__init__(specific_type)
+    def __init__(self):
+        super().__init__("gps")
         self.gps = adafruit_gps.GPS(self.uart, debug=False)
 
     def setup_gps(self):
@@ -73,7 +73,7 @@ class GPSInterface(Port):
                 long_in_string = str(limited_long)
                 # concatenate string
                 gps_string = lat_in_string + "," + long_in_string
-                # Time & date from GPS informations
+                # Time & date from GPS information
                 print("Fix timestamp: {}".format(_format_datetime(self.gps.timestamp_utc)))
                 # Time & date from internal RTC
                 #        print("RTC timestamp: {}".format(_format_datetime(the_rtc.datetime)))
@@ -90,14 +90,28 @@ class GPSInterface(Port):
         self.uart.close()
 
     def get_location(self):
-        checking = True
-        while checking:
+        attempts = 0
+        while attempts < 10:
             self.gps.update()
             if not self.gps.has_fix:
                 print("waiting for fix...")
                 time.sleep(1)
+                attempts += 1
                 continue
-            checking = False
+            attempts = 10
         lat = "Lat: {0:.6f}".format(self.gps.latitude)
         long = "Long: {0:.6f}".format(self.gps.longitude)
-        return lat + long
+        return lat + " " + long
+
+    def get_time(self):
+        attempts = 0
+        while attempts < 10:
+            self.gps.update()
+            if not self.gps.has_fix:
+                print("waiting for fix...")
+                time.sleep(1)
+                attempts += 1
+                continue
+            attempts = 10
+        utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
+        return utc_time
