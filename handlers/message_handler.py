@@ -9,7 +9,7 @@ class MessageHandler:
             location = self.gps.get_location
             return_message += "location: { " + location + " }"
 
-        if message.find("get_time"):
+        if message.find("get_time") != -1:
             time_utc = self.gps.get_location
             return_message += "utc time: { " + time_utc + " }"
         if len(return_message) == 0:

@@ -13,7 +13,7 @@ radio_settings = {
 }
 
 gps_settings = {
-    "port": "/dev/ttyUSB3",
+    "port": "/dev/ttyUSB4",
     "rate": 9600,
 }
 config.set_config(radio_settings, gps_settings)
