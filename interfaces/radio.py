@@ -24,8 +24,10 @@ class RadioInterface:
         self.port = radio["port"]
         self.rate = radio["rate"]
         self.xbee = devices.XBeeDevice(self.port, self.rate)
-        self.xbee.set_parameter("AP", 1, True)
-        self.xbee.write_changes()
+        self.xbee.open()
+        # self.xbee.set_parameter("AP", 1, True)
+        # self.xbee.write_changes()
+        self.xbee.close()
         print("new radio made with", self.port, self.rate)
 
     def print_settings(self):
