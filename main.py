@@ -19,7 +19,7 @@ gps_settings = {
 config.set_config(radio_settings, gps_settings)
 
 xbee = RadioInterface()
-gps = GPSInterface("gps")
+gps = GPSInterface()
 message_handler = MessageHandler(xbee, gps)
 
 xbee.print_settings()
