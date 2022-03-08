@@ -90,6 +90,14 @@ class GPSInterface(Port):
         self.uart.close()
 
     def get_location(self):
+        checking = True
+        while checking:
+            self.gps.update()
+            if not self.gps.has_fix:
+                print("waiting for fix...")
+                time.sleep(1)
+                continue
+            checking = False
         lat = "Lat: {0:.6f}".format(self.gps.latitude)
         long = "Long: {0:.6f}".format(self.gps.longitude)
         return lat + long

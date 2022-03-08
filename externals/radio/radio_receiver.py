@@ -7,7 +7,6 @@ import externals.radio.radio_maker as radio_maker
 
 
 def listen(self):
-
     print("listening...")
     data = self.read_data()
     message = data
@@ -21,7 +20,6 @@ def listen(self):
         return self.listen()
 
 
-
 def open_receiver():
     xbee = radio_maker.make_radio()
     # xbee = XBeeDevice(config.port, config.rate)
@@ -30,4 +28,3 @@ def open_receiver():
     message = xbee.listen()
     xbee.close()
     mesh.mesh_to_all(message)
-

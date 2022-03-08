@@ -20,17 +20,17 @@ def listening(self):
 
 class RadioInterface:
     def __init__(self):
-        self.xbee = None
         radio = config.config["radio"]
         self.port = radio["port"]
         self.rate = radio["rate"]
+        self.xbee = devices.XBeeDevice(self.port, self.rate)
+        self.xbee.set_parameter("AP", 1, True)
+        self.xbee.write_changes()
         print("new radio made with", self.port, self.rate)
 
     def print_settings(self):
         print(self.port, self.rate)
 
-    def make_radio(self):
-        self.xbee = devices.XBeeDevice(self.port, self.rate)
 
     # def listening(self):
     #     print("listening...")
@@ -51,9 +51,15 @@ class RadioInterface:
         self.xbee.open()
         message = self.xbee.listening()
         self.xbee.close()
-        self.send_back(message)
+        # self.send_back(message)
+        return message
 
     def send_back(self, message):
+        self.xbee.open()
+        self.xbee.send_data_broadcast(message)
+        self.xbee.close()
+
+    def send_test_string(self, message):
         self.xbee.open()
         self.xbee.send_data_broadcast(message)
         self.xbee.close()

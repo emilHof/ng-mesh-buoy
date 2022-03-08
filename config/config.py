@@ -18,3 +18,7 @@ def set_config(radio_dict, gps_dict):
     radio["rate"] = radio_dict["rate"]
     gps["port"] = gps_dict["port"]
     gps["rate"] = gps_dict["rate"]
+
+
+def set_specific(target, target_setting, value):
+    config[target][target_setting] = value

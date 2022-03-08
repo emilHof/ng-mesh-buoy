@@ -5,6 +5,7 @@
 import config.config as config
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface
+from handlers.message_handler import MessageHandler
 
 radio_settings = {
     "port": "/dev/ttyUSB2",
@@ -19,10 +20,22 @@ config.set_config(radio_settings, gps_settings)
 
 xbee = RadioInterface()
 gps = GPSInterface("gps")
+message_handler = MessageHandler(xbee, gps)
 
 xbee.print_settings()
-xbee.make_radio()
 # gps.print_settings()
 # gps.print_basics()
 
-xbee.listen()
+message = xbee.listen()
+if message.startswith("@"):
+    err = message_handler.handle_message(message)
+    if err is not None:
+        print(err)
+else:
+    print("message was not handled!")
+    location = gps.get_location()
+    print("location:", location)
+    print("message:", message)
+    xbee.send_back(message + location)
+
+
