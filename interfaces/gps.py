@@ -1,12 +1,17 @@
 import time
-# can only be installed via pip install adafruit-circuitpython-gps (at the moment)
 import adafruit_gps
 # import serial via PySerial
 import serial
-import config.config as config
+from interfaces.database import DBHandler
 from interfaces.ports import Port
+import asyncio
+import sqlite3
+
+# initialize a database handler object
+db = DBHandler()
 
 
+# sets the data and time format
 def _format_datetime(datetime):
     return "{:02}/{:02}/{} {:02}:{:02}:{:02}".format(
         datetime.tm_mon,
@@ -23,6 +28,7 @@ class GPSInterface(Port):
     def __init__(self):
         super().__init__("gps")
         self.gps = adafruit_gps.GPS(self.uart, debug=False)
+        self.log = True
 
     def setup_gps(self):
         az = ','
@@ -34,12 +40,6 @@ class GPSInterface(Port):
             print("encoding unsuccessful")
         # Turn on the basic GGA and RMC info (what you typically want)
         self.gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
-        # Turn on just minimum info (RMC only, location):
-        # gps.send_command(b'PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
-        # Turn off everything:
-        # gps.send_command(b'PMTK314,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
-        # Turn on everything (not all of it is parsed!)
-        # gps.send_command(b'PMTK314,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0')
         # Set update rate to once every 1000ms (1hz) which is what you typically want.
         self.gps.send_command(b"PMTK220,1000")
         print("gps setup!")
@@ -115,3 +115,28 @@ class GPSInterface(Port):
             attempts = 10
         utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
         return utc_time
+
+    async def log_location_and_time(self):
+        index = 0
+        while self.log:
+            attempts = 0
+            while attempts < 2:
+                self.gps.update()
+                if not self.gps.has_fix:
+                    print("waiting for fix...")
+                    await asyncio.sleep(1)
+                    attempts += 1
+                    continue
+                attempts = 2
+            lat = "Lat: {0:.6f}".format(self.gps.latitude)
+            long = "Long: {0:.6f}".format(self.gps.longitude)
+            location = lat + " " + long
+            utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
+            data = (index, location, utc_time)
+            err = db.write_loc_to_db(data)
+            if err is not None:
+                print(err)
+            index += 1
+            print("committed new location and time data to the database")
+            await asyncio.sleep(10)
+

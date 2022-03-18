@@ -6,6 +6,9 @@ config = {
     "gps": {
         "port": None,
         "rate": None,
+    },
+    "db": {
+        "file": None,
     }
 
 }

@@ -1,7 +1,3 @@
-# import externals.radio.radio_receiver as radio_receiver
-#
-# radio_receiver.open_receiver()
-
 import config.config as config
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface
@@ -20,7 +16,6 @@ config.set_config(radio_settings, gps_settings)
 
 xbee = RadioInterface()
 gps = GPSInterface()
-message_handler = MessageHandler(xbee, gps)
 
 xbee.print_settings()
 # gps.print_settings()

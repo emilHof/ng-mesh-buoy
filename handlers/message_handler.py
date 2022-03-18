@@ -3,7 +3,7 @@ class MessageHandler:
         self.radio = radio
         self.gps = gps
 
-    def handle_message(self, message):
+    def handle_message(self, message: str) -> str:
         return_message = ""
         if message.find("get_location") != -1:
             location = self.gps.get_location()
