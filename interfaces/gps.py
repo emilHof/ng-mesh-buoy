@@ -7,9 +7,6 @@ from interfaces.ports import Port
 import asyncio
 import sqlite3
 
-# initialize a database handler object
-db = DBHandler()
-
 
 # sets the data and time format
 def _format_datetime(datetime):
@@ -29,6 +26,7 @@ class GPSInterface(Port):
         super().__init__("gps")
         self.gps = adafruit_gps.GPS(self.uart, debug=False)
         self.log = True
+        self.db = DBHandler()
 
     def setup_gps(self):
         az = ','
@@ -120,23 +118,24 @@ class GPSInterface(Port):
         index = 0
         while self.log:
             attempts = 0
-            while attempts < 2:
+            while attempts < 5:
                 self.gps.update()
                 if not self.gps.has_fix:
                     print("waiting for fix...")
                     await asyncio.sleep(1)
                     attempts += 1
                     continue
-                attempts = 2
+                attempts = 5
             lat = "Lat: {0:.6f}".format(self.gps.latitude)
             long = "Long: {0:.6f}".format(self.gps.longitude)
             location = lat + " " + long
             utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
             data = (index, location, utc_time)
-            err = db.write_loc_to_db(data)
+            err = self.db.write_loc_to_db(data)
             if err is not None:
                 print(err)
             index += 1
-            print("committed new location and time data to the database")
+            # print("committed new "
+            #       "location and time data to the database:", location)
             await asyncio.sleep(10)
 

@@ -13,7 +13,7 @@ gps_settings = {
     "rate": 9600,
 }
 config.set_config(radio_settings, gps_settings)
-
+handler = MessageHandler()
 xbee = RadioInterface()
 gps = GPSInterface()
 
@@ -23,7 +23,7 @@ xbee.print_settings()
 
 message = xbee.listen()
 if message.startswith("@"):
-    err = message_handler.handle_message(message)
+    err = handler.handle_message(message)
     if err is not None:
         print(err)
 else:

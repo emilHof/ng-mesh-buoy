@@ -1,5 +1,7 @@
+
 import config.config as config
 from interfaces.radio import RadioInterface
+from interfaces.gps import GPSInterface
 
 
 def run_test():
@@ -17,12 +19,9 @@ gps_settings = {
 }
 config.set_config(radio_settings, gps_settings)
 
-xbee = RadioInterface()
 
-xbee.send_test_string("@get_location, get_time")
-print("message sent!")
+gps = GPSInterface()
 
-message = xbee.listen()
-print(message)
+gps.print_basics()
 
 run_test()

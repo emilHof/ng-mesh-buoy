@@ -83,6 +83,7 @@ class RadioInterface:
         xbee = self.xbee
         xbee.open()
         message = await self.listening_async()
+        xbee.close()
         return message
 
     # listening listens for an incoming radio signal with a non-blocking loop and call to .read_data()
@@ -97,6 +98,6 @@ class RadioInterface:
         else:
             print("no message found")
             print("sleeping...")
-            await asyncio.sleep(3)
+            await asyncio.sleep(5)
             message = await self.listening_async()
             return message
