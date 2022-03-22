@@ -1,11 +1,9 @@
 import time
 import adafruit_gps
-# import serial via PySerial
 import serial
 from interfaces.database import DBHandler
 from interfaces.ports import Port
 import asyncio
-import sqlite3
 
 
 # sets the data and time format
