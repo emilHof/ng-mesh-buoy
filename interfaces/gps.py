@@ -114,26 +114,29 @@ class GPSInterface(Port):
 
     async def log_location_and_time(self):
         index = 0
-        while self.log:
-            attempts = 0
-            while attempts < 5:
-                self.gps.update()
-                if not self.gps.has_fix:
-                    print("waiting for fix...")
-                    await asyncio.sleep(1)
-                    attempts += 1
-                    continue
-                attempts = 5
-            lat = "Lat: {0:.6f}".format(self.gps.latitude)
-            long = "Long: {0:.6f}".format(self.gps.longitude)
-            location = lat + " " + long
-            utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
-            data = (index, location, utc_time)
-            err = self.db.write_loc_to_db(data)
-            if err is not None:
-                print(err)
-            index += 1
-            # print("committed new "
-            #       "location and time data to the database:", location)
-            await asyncio.sleep(10)
+        while True:
+            if self.log:
+                attempts = 0
+                while attempts < 5:
+                    self.gps.update()
+                    if not self.gps.has_fix:
+                        print("waiting for fix...")
+                        await asyncio.sleep(1)
+                        attempts += 1
+                        continue
+                    attempts = 5
+                lat = "Lat: {0:.6f}".format(self.gps.latitude)
+                long = "Long: {0:.6f}".format(self.gps.longitude)
+                location = lat + " " + long
+                utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
+                data = (index, location, utc_time)
+                err = self.db.write_loc_to_db(data)
+                if err is not None:
+                    print(err)
+                index += 1
+                # print("committed new "
+                #       "location and time data to the database:", location)
+                await asyncio.sleep(10)
+            else:
+                await asyncio.sleep(60)
 
