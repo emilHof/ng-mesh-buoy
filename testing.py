@@ -1,27 +1,28 @@
-from digi.xbee.devices import XBeeDevice
-import time
-from types import MethodType
+import config.config as config
+from interfaces.radio import RadioInterface
 
 
-def listen(self):
-    print("listening...")
-    data = self.read_data()
-    message = data
-    if message != None:
-        print("found a message")
-        return message.data.decode("utf8")
-    else:
-        print("no message found")
-        print("sleeping...")
-        time.sleep(3)
-        return self.listen()
+def run_test():
+    print(config.config)
 
 
-xbee = XBeeDevice("/dev/ttyUSB2", 9600)
-xbee.open()
-xbee.send_data_broadcast("hello world")
-xbee.listen = MethodType(listen, xbee)
-msg = xbee.listen()
-xbee.close()
+radio_settings = {
+    "port": "/dev/ttyUSB2",
+    "rate": 9600,
+}
 
-print(msg)
+gps_settings = {
+    "port": "/dev/ttyUSB4",
+    "rate": 9600,
+}
+config.set_config(radio_settings, gps_settings)
+
+xbee = RadioInterface()
+
+xbee.send_test_string("&stop")
+print("message sent!")
+
+message = xbee.listen()
+print(message)
+
+run_test()
