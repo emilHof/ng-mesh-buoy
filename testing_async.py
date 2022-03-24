@@ -2,7 +2,7 @@ import config.config as config
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface
 from interfaces.database import DBInterface
-from handlers.message_handler import propagate_message
+from handlers.message_handler import MessageHandler
 import asyncio
 
 radio_settings = {
@@ -25,10 +25,11 @@ async def main():
     xbee = RadioInterface()
     gps = GPSInterface()
     db = DBInterface()
+    msg_handler = MessageHandler()
 
     gps.setup_gps()
 
-    stopped = await asyncio.gather(propagate_message(xbee, gps), gps.log_location_and_time())
+    stopped = await asyncio.gather(msg_handler.propagate_message(), gps.log_location_and_time())
 
     print(stopped)
 

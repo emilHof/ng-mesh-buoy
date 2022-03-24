@@ -64,3 +64,19 @@ class MessageHandler:
             rows.append(row)
         for row in rows:
             print(row)
+
+    async def propagate_message(self) -> bool:
+        while True:
+            message = await self.radio.listen_async()
+            if message.startswith("@"):
+                err = self.handle_message(message)
+                if err is not None:
+                    print(err)
+            elif message.startswith("&stop"):
+                self.gps.log = False
+                return True
+            elif message.startswith("#size_"):
+                await self.handle_block(message)
+            else:
+                print("message was not handled!")
+                print(message)
