@@ -1,11 +1,10 @@
-import config.config as config
 from interfaces.database import DBInterface
 from interfaces.radio import RadioInterface
-import asyncio
+from interfaces.gps import GPSInterface
 
 
 async def propagate_message(xbee, gps) -> bool:
-    message_handler = MessageHandler(xbee, gps)
+    message_handler = MessageHandler()
     while True:
         message = await xbee.listen_async()
         if message.startswith("@"):
@@ -16,16 +15,16 @@ async def propagate_message(xbee, gps) -> bool:
             gps.log = False
             return True
         elif message.startswith("#size_"):
-            message_handler.handle_block(message)
+            await message_handler.handle_block(message)
         else:
             print("message was not handled!")
             print(message)
 
 
 class MessageHandler:
-    def __init__(self, radio, gps):
+    def __init__(self):
         self.radio = RadioInterface()
-        self.gps = gps
+        self.gps = GPSInterface()
         self.db = DBInterface()
 
     def handle_message(self, message: str) -> str:
@@ -42,9 +41,9 @@ class MessageHandler:
             print("asked to get all locations")
             rows = self.db.read_loc_db()
             length = len(rows)
-            self.radio.send_back("#size_"+str(length))
+            self.radio.send_back("#size_" + str(length))
             for row in rows:
-                self.radio.send_back(row[1]+row[2])
+                self.radio.send_back(row[1] + row[2])
 
         if len(return_message) == 0:
             err = "no known commands found!"
@@ -56,14 +55,12 @@ class MessageHandler:
 
         return ""
 
-
-    def handle_block(self, message):
+    async def handle_block(self, message):
         rows = []
         length = message[:6]
         length = int(length)
-        for i in range (0, length):
+        for i in range(0, length):
             row = await self.radio.listen_async()
             rows.append(row)
         for row in rows:
             print(row)
-
