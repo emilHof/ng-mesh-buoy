@@ -29,11 +29,12 @@ async def main():
 
     gps.setup_gps()
 
-    stopped = await asyncio.gather(msg_handler.propagate_message(), gps.log_location_and_time())
+    # stopped = await asyncio.gather(msg_handler.propagate_message(), gps.log_location_and_time())
+    stopped = await msg_handler.propagate_message()
 
     print(stopped)
 
-    if stopped[0]:
+    if stopped:
         print("hey")
         rows = db.read_loc_db()
         for row in rows:
