@@ -1,3 +1,5 @@
+import asyncio
+
 from interfaces.database import DBInterface
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface
@@ -25,6 +27,7 @@ class MessageHandler:
     def __init__(self):
         self.radio = RadioInterface()
         self.db = DBInterface()
+        self.propagate = True
 
     def handle_message(self, message: str) -> str:
         return_message = ""
@@ -59,27 +62,31 @@ class MessageHandler:
         return ""
 
     async def handle_block(self, message):
+        self.propagate = False
         rows = []
         length = message[6:]
         length = int(length)
         for i in range(0, length):
-            row = await self.radio.listen_async()
+            row = await self.radio.listen_async_timed(1, 5)
             rows.append(row)
         for row in rows:
             print(row)
+        self.propagate = True
 
-    async def propagate_message(self) -> bool:
+    async def propagate_message(self, ) -> bool:
         while True:
-            message = await self.radio.listen_async()
-            if message.startswith("@"):
-                err = self.handle_message(message)
-                if err is not None:
-                    print(err)
-            elif message.startswith("&stop"):
-                self.gps.log = False
-                return True
-            elif message.startswith("#size_"):
-                await self.handle_block(message)
-            else:
-                print("message was not handled!")
-                print(message)
+            while self.propagate:
+                message = await self.radio.listen_async()
+                if message.startswith("@"):
+                    err = self.handle_message(message)
+                    if err is not None:
+                        print(err)
+                elif message.startswith("&stop"):
+                    self.gps.log = False
+                    return True
+                elif message.startswith("#size_"):
+                    await self.handle_block(message)
+                else:
+                    print("message was not handled!")
+                    print(message)
+            await asyncio.sleep(10)

@@ -35,6 +35,18 @@ async def listening_async(xbee):
         return xbee.listening()
 
 
+async def listening_async_timed(xbee, sleep, tries):
+    print("listening...")
+    data = xbee.read_data()
+    message = data
+    if message is not None:
+        print("found a message")
+        return message.data.decode("utf8")
+    else:
+        await asyncio.sleep(sleep)
+        return xbee.listening()
+
+
 class RadioInterface:
 
     """ __init__ is called on initialization of every new RadioInterface """
@@ -83,6 +95,13 @@ class RadioInterface:
         xbee.close()
         return message
 
+    async def listen_async_timed(self, sleep, tries) -> str:
+        xbee = self.xbee
+        xbee.open()
+        message = await self.listening_async_limited(sleep, tries)
+        xbee.close()
+        return message
+
     """
     listening_async listens for an incoming radio signal with a non-blocking loop
     returns a string of the data 
@@ -100,4 +119,19 @@ class RadioInterface:
             print("sleeping...")
             await asyncio.sleep(5)
             message = await self.listening_async()
+            return message
+
+    async def listening_async_limited(self, timeout, tries) -> str:
+        if tries < 1:
+            return "no message found"
+        tries -= 1
+        xbee = self.xbee
+        data = xbee.read_data()
+        message = data
+        if message is not None:
+            print("found a message")
+            return message.data.decode("utf8")
+        else:
+            await asyncio.sleep(timeout)
+            message = await self.listening_async_limited(timeout, tries)
             return message
