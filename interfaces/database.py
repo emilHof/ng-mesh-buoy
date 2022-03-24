@@ -2,7 +2,7 @@ import config.config as config
 import sqlite3
 
 
-class DBHandler:
+class DBInterface:
 
     """ __init__ is called on initialization of every new DBHandler """
     def __init__(self):

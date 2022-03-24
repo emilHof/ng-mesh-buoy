@@ -1,8 +1,8 @@
 import config.config as config
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface
-from interfaces.database import DBHandler
-from handlers.message_handler import MessageHandler
+from interfaces.database import DBInterface
+from handlers.message_handler import propagate_message
 import asyncio
 
 radio_settings = {
@@ -15,29 +15,17 @@ gps_settings = {
     "rate": 9600,
 }
 
-
-async def propagate_message(xbee, gps) -> bool:
-    message_handler = MessageHandler(xbee, gps)
-    while True:
-        message = await xbee.listen_async()
-        if message.startswith("@"):
-            err = message_handler.handle_message(message)
-            if err is not None:
-                print(err)
-        elif message.startswith("&stop"):
-            gps.log = False
-            return True
-        else:
-            print("message was not handled!")
-            print(message)
+db_setting = {
+    "file": "local_data"
+}
 
 
 async def main():
-    config.set_config(radio_settings, gps_settings)
+    config.set_config(radio_settings, gps_settings, db_setting)
     config.set_specific("db", "file", "gps.db")
     xbee = RadioInterface()
     gps = GPSInterface()
-    db = DBHandler()
+    db = DBInterface()
 
     gps.setup_gps()
 
@@ -52,6 +40,7 @@ async def main():
             print(row)
 
     return "all async loops exited"
+
 
 if __name__ == "__main__":
     output = asyncio.run(main())

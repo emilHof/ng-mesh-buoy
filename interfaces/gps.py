@@ -1,7 +1,7 @@
 import time
 import adafruit_gps
 import serial
-from interfaces.database import DBHandler
+from interfaces.database import DBInterface
 from interfaces.ports import Port
 import asyncio
 
@@ -24,7 +24,7 @@ class GPSInterface(Port):
         super().__init__("gps")
         self.gps = adafruit_gps.GPS(self.uart, debug=False)
         self.log = True
-        self.db = DBHandler()
+        self.db = DBInterface()
 
     def setup_gps(self):
         az = ','

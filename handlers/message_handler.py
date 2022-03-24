@@ -1,3 +1,22 @@
+import asyncio
+
+
+async def propagate_message(xbee, gps) -> bool:
+    message_handler = MessageHandler(xbee, gps)
+    while True:
+        message = await xbee.listen_async()
+        if message.startswith("@"):
+            err = message_handler.handle_message(message)
+            if err is not None:
+                print(err)
+        elif message.startswith("&stop"):
+            gps.log = False
+            return True
+        else:
+            print("message was not handled!")
+            print(message)
+
+
 class MessageHandler:
     def __init__(self, radio, gps):
         self.radio = radio
