@@ -66,6 +66,8 @@ class MessageHandler:
         rows = []
         length = message[6:]
         length = int(length)
+        if length > 50:
+            length = 50
         fail_counter = 0
         for i in range(0, length):
             row = await self.radio.listen_async_timed(1, 5)
