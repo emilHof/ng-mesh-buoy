@@ -42,8 +42,10 @@ class MessageHandler:
             print("asked to get all locations")
             rows = self.db.read_loc_db()
             length = len(rows)
+            print(length)
             self.radio.send_back("#size_" + str(length))
             for row in rows:
+                print("sent row of" + row[1] + row[2])
                 self.radio.send_back(row[1] + row[2])
 
         if len(return_message) == 0:
@@ -58,7 +60,7 @@ class MessageHandler:
 
     async def handle_block(self, message):
         rows = []
-        length = message[:6]
+        length = message[6:]
         length = int(length)
         for i in range(0, length):
             row = await self.radio.listen_async()
