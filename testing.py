@@ -1,5 +1,6 @@
 import config.config as config
 from interfaces.radio import RadioInterface
+from interfaces.gps import GPSInterface
 
 
 def run_test():
@@ -7,22 +8,31 @@ def run_test():
 
 
 radio_settings = {
-    "port": "/dev/ttyUSB2",
+    "port": "/dev/ttyUSB3",
     "rate": 9600,
 }
 
 gps_settings = {
-    "port": "/dev/ttyUSB4",
+    "port": "/dev/ttyUSB0",
     "rate": 9600,
 }
-config.set_config(radio_settings, gps_settings)
 
-xbee = RadioInterface()
+db = {
+    "file": "local_data.db"
+}
 
-xbee.send_test_string("&stop")
-print("message sent!")
+config.set_config(radio_settings, gps_settings, db)
+#
+# xbee = RadioInterface()
+#
+# xbee.send_test_string("&stop")
+# print("message sent!")
+#
+# message = xbee.listen()
+# print(message)
+#
+# run_test()
 
-message = xbee.listen()
-print(message)
+gps = GPSInterface()
 
-run_test()
+gps.print_basics()

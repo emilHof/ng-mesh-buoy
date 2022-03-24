@@ -7,7 +7,7 @@ def run_test():
 
 
 radio_settings = {
-    "port": "/dev/ttyUSB2",
+    "port": "/dev/ttyUSB3",
     "rate": 9600,
 }
 

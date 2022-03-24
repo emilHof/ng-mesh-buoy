@@ -1,3 +1,6 @@
+import config.config as config
+from interfaces.database import DBInterface
+from interfaces.radio import RadioInterface
 import asyncio
 
 
@@ -19,8 +22,9 @@ async def propagate_message(xbee, gps) -> bool:
 
 class MessageHandler:
     def __init__(self, radio, gps):
-        self.radio = radio
+        self.radio = RadioInterface()
         self.gps = gps
+        self.db = DBInterface()
 
     def handle_message(self, message: str) -> str:
         return_message = ""
@@ -31,6 +35,15 @@ class MessageHandler:
         if message.find("get_time") != -1:
             time_utc = self.gps.get_time()
             return_message += " utc time: { " + time_utc + " }"
+
+        if message.find("get_all_location") != -1:
+            print("asked to get all locations")
+            rows = self.db.read_loc_db()
+            length = len(rows)
+            self.radio.send_back("@size_"+str(length))
+            for row in rows:
+                self.radio.send_back(row[1]+row[2])
+
         if len(return_message) == 0:
             err = "no known commands found!"
             self.radio.send_back(err)

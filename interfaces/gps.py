@@ -134,8 +134,8 @@ class GPSInterface(Port):
                 if err is not None:
                     print(err)
                 index += 1
-                # print("committed new "
-                #       "location and time data to the database:", location)
+                print("committed new "
+                      "location and time data to the database:", location)
                 await asyncio.sleep(10)
             else:
                 await asyncio.sleep(60)

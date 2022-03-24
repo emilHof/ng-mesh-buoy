@@ -6,12 +6,12 @@ from handlers.message_handler import propagate_message
 import asyncio
 
 radio_settings = {
-    "port": "/dev/ttyUSB2",
+    "port": "/dev/ttyUSB3",
     "rate": 9600,
 }
 
 gps_settings = {
-    "port": "/dev/ttyUSB4",
+    "port": "/dev/ttyUSB0",
     "rate": 9600,
 }
 
@@ -22,7 +22,6 @@ db_setting = {
 
 async def main():
     config.set_config(radio_settings, gps_settings, db_setting)
-    config.set_specific("db", "file", "gps.db")
     xbee = RadioInterface()
     gps = GPSInterface()
     db = DBInterface()
