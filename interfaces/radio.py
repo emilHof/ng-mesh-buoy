@@ -129,7 +129,7 @@ class RadioInterface:
         data = xbee.read_data()
         message = data
         if message is not None:
-            print("found a message")
+            # print("found a message")
             return message.data.decode("utf8")
         else:
             await asyncio.sleep(timeout)

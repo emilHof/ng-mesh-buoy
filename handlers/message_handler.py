@@ -69,7 +69,9 @@ class MessageHandler:
         fail_counter = 0
         for i in range(0, length):
             row = await self.radio.listen_async_timed(1, 5)
+            print(i, "found message:", row)
             if row == "":
+                print("failed to find message", fail_counter)
                 fail_counter += 1
                 if fail_counter > 5:
                     break
