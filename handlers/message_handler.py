@@ -62,7 +62,7 @@ class MessageHandler:
             print(length)
             self.radio.send_back("#size_" + str(length))
             for row in rows:
-                print("sent row of" + row[0] + row[1])
+                print("sent row of", row[1])
                 self.radio.send_back(row[1])
 
         if len(return_message) == 0:
