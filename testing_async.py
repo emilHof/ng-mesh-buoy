@@ -29,8 +29,10 @@ async def main():
 
     gps.setup_gps()
 
-    # stopped = await asyncio.gather(msg_handler.propagate_message(), gps.log_location_and_time())
-    stopped = await msg_handler.propagate_message()
+    print(db.gps_index)
+
+    stopped = await asyncio.gather(msg_handler.propagate_message(), gps.log_location_and_time())
+    # stopped = await msg_handler.propagate_message()
 
     print(stopped)
 

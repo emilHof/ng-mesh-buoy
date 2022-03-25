@@ -113,7 +113,8 @@ class GPSInterface(Port):
         return utc_time
 
     async def log_location_and_time(self):
-        index = 0
+        self.db.gps_index += 1
+        index = self.db.gps_index
         while True:
             if self.log:
                 attempts = 0
@@ -136,7 +137,7 @@ class GPSInterface(Port):
                 index += 1
                 print("committed new "
                       "location and time data to the database:", location)
-                await asyncio.sleep(10)
+                await asyncio.sleep(30)
             else:
                 await asyncio.sleep(60)
 
