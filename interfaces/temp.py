@@ -40,8 +40,7 @@ class TempInterface(Port):
                 if err is not None:
                     print(err)
                 index += 1
-                print("committed new "
-                      "temp data to the database:", temp)
+                print("committed new temp data to the database:", temp)
                 await asyncio.sleep(10)
             else:
                 await asyncio.sleep(60)
