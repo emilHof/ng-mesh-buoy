@@ -7,6 +7,10 @@ config = {
         "port": None,
         "rate": None,
     },
+    "rfid": {
+        "port": None,
+        "rate": None,
+    },
     "temp": {
         "port": None,
         "rate": None,

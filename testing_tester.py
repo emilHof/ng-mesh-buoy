@@ -19,7 +19,7 @@ config.set_config(radio_settings, gps_settings)
 
 xbee = RadioInterface()
 
-xbee.send_test_string("@get_location, get_time")
+xbee.send_test_string("@get_temp")
 print("message sent!")
 
 message = xbee.listen()

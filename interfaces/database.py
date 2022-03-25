@@ -11,6 +11,7 @@ class DBInterface:
         self.make_tables()
         self.gps_index = self.fetch_indices()[0][0]
         self.temp_index = self.fetch_indices()[1][0]
+        self.rfid_index = self.fetch_indices()[2][0]
 
     """ settings returns the current name of the .db file """
 
@@ -24,8 +25,12 @@ class DBInterface:
                                    location_and_time(id INTEGER, location TEXT, time TEXT)"""
         create_temp_data_format = """CREATE TABLE IF NOT EXISTS
                                     temp(id INTEGER, temp TEXT)"""
+
+        create_rfid_data_format = """CREATE TABLE IF NOT EXISTS
+                                    temp(id INTEGER, rfid TEXT, time TEXT)"""
         cursor.execute(create_gps_data_format)
         cursor.execute(create_temp_data_format)
+        cursor.execute(create_rfid_data_format)
         con.commit()
         con.close()
 
@@ -36,12 +41,16 @@ class DBInterface:
         gps_index = cursor.fetchone()  # Fetching 1st row from the table
         cursor.execute('''SELECT id from temp ORDER BY id DESC LIMIT 1''')  # Retrieving data
         temp_index = cursor.fetchone()  # Fetching 1st row from the table
+        cursor.execute('''SELECT id from rfid ORDER BY id DESC LIMIT 1''')  # Retrieving data
+        rfid_index = cursor.fetchone()  # Fetching 1st row from the table
         conn.close()  # Closing the connection
         if gps_index is None:
             gps_index = 0, 0
         if temp_index is None:
             temp_index = 0, 0
-        result = [gps_index, temp_index]
+        if rfid_index is None:
+            rfid_index = 0, 0
+        result = [gps_index, temp_index, rfid_index]
         return result
 
     """ write_loc_to_db writes the passed tuple to the location and time table in the database"""
@@ -53,12 +62,21 @@ class DBInterface:
         con.commit()
         con.close()
 
-        """ write_loc_to_db writes the passed tuple to the location and time table in the database"""
+    """ write_temp_to_db writes the passed tuple to the temp table in the database"""
 
     def write_temp_to_db(self, new_entry: tuple):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
         cursor.execute("""INSERT INTO temp(id, temp) VALUES(?, ?)""", new_entry)
+        con.commit()
+        con.close()
+
+    """ write_rfid_to_db writes the passed tuple to the rfid table in the database"""
+
+    def write_rfid_to_db(self, new_entry: tuple):
+        con = sqlite3.connect(self.db_file)
+        cursor = con.cursor()
+        cursor.execute("""INSERT INTO temp(id, rfid, time) VALUES(?, ?, ?)""", new_entry)
         con.commit()
         con.close()
 

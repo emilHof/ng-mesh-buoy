@@ -4,7 +4,7 @@ import asyncio
 
 
 class TempInterface(Port):
-    """ __init__ is called on initialization of every new DBHandler """
+    """ __init__ is called on initialization of every new TempInterface """
 
     def __init__(self):
         super().__init__("temp")
