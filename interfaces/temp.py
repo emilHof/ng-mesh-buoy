@@ -22,3 +22,26 @@ class TempInterface(Port):
             text += msg
             msg = s.read().decode()
         return text
+
+    async def log_temp(self):
+        s = self.uart
+        self.db.temp_index += 1
+        index = self.db.temp_index
+        while True:
+            if self.log:
+                """read a line and print."""
+                temp = ""
+                msg = s.read().decode()
+                while msg != '\n':
+                    temp += msg
+                    msg = s.read().decode()
+                data = (index, temp)
+                err = self.db.write_temp_to_db(data)
+                if err is not None:
+                    print(err)
+                index += 1
+                print("committed new "
+                      "temp data to the database:", temp)
+                await asyncio.sleep(10)
+            else:
+                await asyncio.sleep(60)
