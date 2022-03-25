@@ -8,32 +8,39 @@ class DBInterface:
     def __init__(self):
         parameters = config.config["db"]
         self.db_file = parameters["file"]
-        self.make_table()
-        self.gps_index = self.fetch_gps_index()[0]
-
+        self.make_tables()
+        self.gps_index = self.fetch_indices()[0][0]
+        self.temp_index = self.fetch_indices()[1][0]
 
     """ settings returns the current name of the .db file """
 
     def settings(self) -> str:
         return self.db_file
 
-    def make_table(self):
+    def make_tables(self):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
         create_gps_data_format = """CREATE TABLE IF NOT EXISTS
                                    location_and_time(id INTEGER, location TEXT, time TEXT)"""
-        cursor.execute(create_gps_data_format)
+        create_temp_data_format = """CREATE TABLE IF NOT EXISTS
+                                    temp(id INTEGER, temp TEXT)"""
+        cursor.execute(create_gps_data_format, create_temp_data_format)
         con.commit()
         con.close()
 
-    def fetch_gps_index(self):
+    def fetch_indices(self):
         conn = sqlite3.connect(self.db_file)  # Connecting to sqlite
         cursor = conn.cursor()  # Creating a cursor object using the cursor() method
         cursor.execute('''SELECT id from location_and_time ORDER BY id DESC LIMIT 1''')  # Retrieving data
-        result = cursor.fetchone()  # Fetching 1st row from the table
+        gps_index = cursor.fetchone()  # Fetching 1st row from the table
+        cursor.execute('''SELECT id from temp ORDER BY id DESC LIMIT 1''')  # Retrieving data
+        temp_index = cursor.fetchone()  # Fetching 1st row from the table
         conn.close()  # Closing the connection
-        if result is None:
-            return 0, 0
+        if gps_index is None:
+            gps_index = 0, 0
+        if temp_index is None:
+            temp_index = 0, 0
+        result = [gps_index, temp_index]
         return result
 
     """ write_loc_to_db writes the passed tuple to the location and time table in the database"""
@@ -41,10 +48,16 @@ class DBInterface:
     def write_loc_to_db(self, new_entry: tuple):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        create_gps_data_format = """CREATE TABLE IF NOT EXISTS
-                           location_and_time(id INTEGER, location TEXT, time TEXT)"""
-        cursor.execute(create_gps_data_format)
         cursor.execute("""INSERT INTO location_and_time(id, location, time) VALUES(?, ?, ?)""", new_entry)
+        con.commit()
+        con.close()
+
+        """ write_loc_to_db writes the passed tuple to the location and time table in the database"""
+
+    def write_temp_to_db(self, new_entry: tuple):
+        con = sqlite3.connect(self.db_file)
+        cursor = con.cursor()
+        cursor.execute("""INSERT INTO temp(id, temp) VALUES(?, ?)""", new_entry)
         con.commit()
         con.close()
 

@@ -15,6 +15,11 @@ gps_settings = {
     "rate": 9600,
 }
 
+temp_settings = {
+    "port": "/dev/ttyACM0",
+    "rate": 9600,
+}
+
 db_setting = {
     "file": "local_data"
 }

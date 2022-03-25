@@ -3,6 +3,7 @@ import asyncio
 from interfaces.database import DBInterface
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface
+from interfaces.temp import TempInterface
 
 
 # async def propagate_message(xbee, gps) -> bool:
@@ -50,6 +51,11 @@ class MessageHandler:
             for row in rows:
                 print("sent row of" + row[1] + row[2])
                 self.radio.send_back(row[1] + row[2])
+
+        if message.find("get_temp"):
+            self.temp = TempInterface()
+            result = self.temp.get_temp()
+            self.radio.send_back(result)
 
         if len(return_message) == 0:
             err = "no known commands found!"

@@ -1,6 +1,5 @@
 import time
 import adafruit_gps
-import serial
 from interfaces.database import DBInterface
 from interfaces.ports import Port
 import asyncio
