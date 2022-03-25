@@ -24,7 +24,8 @@ class DBInterface:
                                    location_and_time(id INTEGER, location TEXT, time TEXT)"""
         create_temp_data_format = """CREATE TABLE IF NOT EXISTS
                                     temp(id INTEGER, temp TEXT)"""
-        cursor.execute(create_gps_data_format, create_temp_data_format)
+        cursor.execute(create_gps_data_format)
+        cursor.execute(create_temp_data_format)
         con.commit()
         con.close()
 
