@@ -34,7 +34,7 @@ async def main():
 
     gps.setup_gps()
 
-    xbee.send_test_string("@get_temp")
+    xbee.send_test_string("@get_all_temp")
 
     # stopped = await asyncio.gather(msg_handler.propagate_message(), gps.log_location_and_time())
     stopped = await msg_handler.propagate_message()

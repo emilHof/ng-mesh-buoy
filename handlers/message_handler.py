@@ -43,7 +43,6 @@ class MessageHandler:
             return_message += " utc time: { " + time_utc + " }"
 
         if message.find("get_all_location") != -1:
-            print("asked to get all locations")
             rows = self.db.read_loc_db()
             length = len(rows)
             print(length)
@@ -56,6 +55,15 @@ class MessageHandler:
             self.temp = TempInterface()
             result = self.temp.get_temp()
             self.radio.send_back(result)
+
+        if message.find("get_all_temp") != -1:
+            rows = self.db.read_temp_db()
+            length = len(rows)
+            print(length)
+            self.radio.send_back("#size_" + str(length))
+            for row in rows:
+                print("sent row of" + row[0] + row[1])
+                self.radio.send_back(row[0] + row[1])
 
         if len(return_message) == 0:
             err = "no known commands found!"
