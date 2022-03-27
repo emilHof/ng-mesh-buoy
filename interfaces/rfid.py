@@ -27,14 +27,15 @@ class RFIDInterface(Port):
                 while msg != '\n':
                     rfid_sig += msg
                     msg = s.read().decode()
-                self.gps = GPSInterface()
-                time = self.gps.get_time()
+                # self.gps = GPSInterface()
+                # time = self.gps.get_time()
+                time = ""
                 signal = (index, rfid_sig, time)
                 err = self.db.write_rfid_to_db(signal)
                 if err is not None:
                     print(err)
                 index += 1
                 print("committed new temp data to the database:", rfid_sig)
-                await asyncio.sleep(10)
+                await asyncio.sleep(1)
             else:
                 await asyncio.sleep(60)

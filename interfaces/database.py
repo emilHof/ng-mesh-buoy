@@ -27,7 +27,7 @@ class DBInterface:
                                     temp(id INTEGER, temp TEXT)"""
 
         create_rfid_data_format = """CREATE TABLE IF NOT EXISTS
-                                    temp(id INTEGER, rfid TEXT, time TEXT)"""
+                                    rfid(id INTEGER, rfid TEXT, time TEXT)"""
         cursor.execute(create_gps_data_format)
         cursor.execute(create_temp_data_format)
         cursor.execute(create_rfid_data_format)
@@ -76,7 +76,7 @@ class DBInterface:
     def write_rfid_to_db(self, new_entry: tuple):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute("""INSERT INTO temp(id, rfid, time) VALUES(?, ?, ?)""", new_entry)
+        cursor.execute("""INSERT INTO rfid(id, rfid, time) VALUES(?, ?, ?)""", new_entry)
         con.commit()
         con.close()
 
