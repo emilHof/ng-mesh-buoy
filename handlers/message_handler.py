@@ -68,12 +68,14 @@ class MessageHandler:
                 self.radio.send_back(row[1])
 
         if message.find("ping") != -1:
-            self.radio.send_back("pong")
+            print("found message:", message)
+            print("sent message:", "pong")
+            return_message = "@pong"
 
         if message.find("pong") != -1:
             print("found message:", message)
             print("sent message:", "ping")
-            self.radio.send_back("ping")
+            return_message = "@ping"
 
         if len(return_message) == 0:
             err = "no known commands found!"
