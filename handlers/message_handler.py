@@ -29,6 +29,8 @@ class MessageHandler:
         self.radio = RadioInterface()
         self.db = DBInterface()
         self.propagate = True
+        self.gps = None
+        self.temp = None
 
     def handle_message(self, message: str) -> str:
         return_message = ""
@@ -65,6 +67,9 @@ class MessageHandler:
                 print("sent row of", row[1])
                 self.radio.send_back(row[1])
 
+        if message.find("ping") != -1:
+            self.radio.send_back("pong")
+
         if len(return_message) == 0:
             err = "no known commands found!"
             self.radio.send_back(err)
@@ -96,7 +101,7 @@ class MessageHandler:
             print(row)
         self.propagate = True
 
-    async def propagate_message(self, ) -> bool:
+    async def propagate_message(self) -> bool:
         while True:
             while self.propagate:
                 message = await self.radio.listen_async()
