@@ -53,7 +53,7 @@ class MessageHandler:
                 print("sent row of" + row[1] + row[2])
                 self.radio.send_back(row[1] + row[2])
 
-        if message.find("get_temp"):
+        if message.find("get_temp") != -1:
             self.temp = TempInterface()
             result = self.temp.get_temp()
             self.radio.send_back(result)
@@ -69,6 +69,11 @@ class MessageHandler:
 
         if message.find("ping") != -1:
             self.radio.send_back("pong")
+
+        if message.find("pong") != -1:
+            print("found message:", message)
+            print("sent message:", "ping")
+            self.radio.send_back("ping")
 
         if len(return_message) == 0:
             err = "no known commands found!"
