@@ -1,6 +1,7 @@
 from interfaces.database import DBInterface
 from interfaces.ports import Port
 from interfaces.gps import GPSInterface
+from datetime import datetime
 import asyncio
 
 
@@ -10,10 +11,11 @@ class RFIDInterface(Port):
     def __init__(self):
         super().__init__("rfid")
         self.check = True
-        self.db = DBInterface()
-        self.index = self.db.rfid_index
+        self.hasGPS = False
         self.gps = None
         self.turbidity = None
+        self.db = DBInterface()
+        self.index = self.db.rfid_index
 
     async def check_rfid(self):
         self.index += 1
@@ -27,9 +29,13 @@ class RFIDInterface(Port):
                 while msg != '\n':
                     rfid_sig += msg
                     msg = s.read().decode()
-                # self.gps = GPSInterface()
-                # time = self.gps.get_time()
-                time = ""
+
+                if self.hasGPS:
+                    self.gps = GPSInterface()
+                    time = self.gps.get_time()
+                else:
+                    time = datetime.now().strftime("%H:%M:%S")
+
                 signal = (index, rfid_sig, time)
                 err = self.db.write_rfid_to_db(signal)
                 if err is not None:

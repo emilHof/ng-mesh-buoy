@@ -1,5 +1,7 @@
 from interfaces.database import DBInterface
 from interfaces.ports import Port
+from interfaces.gps import GPSInterface
+from datetime import datetime
 import asyncio
 
 
@@ -8,8 +10,10 @@ class TempInterface(Port):
 
     def __init__(self):
         super().__init__("temp")
-        self.log = True
+        self.log = True  # set this to turn on or off to toggle logging
+        self.hasGPS = False  # set this to True when there is a GPS connected
         self.db = DBInterface()
+        self.gps = None
 
     def get_temp(self) -> str:
         s = self.uart
@@ -27,6 +31,9 @@ class TempInterface(Port):
         s = self.uart
         self.db.temp_index += 1
         index = self.db.temp_index
+        if self.hasGPS:
+            self.gps = GPSInterface()
+
         while True:
             if self.log:
                 """read a line and print."""
@@ -35,7 +42,13 @@ class TempInterface(Port):
                 while msg != '\n':
                     temp += msg
                     msg = s.read().decode()
-                data = (index, temp)
+
+                if self.hasGPS:
+                    time = self.gps.get_time()
+                else:
+                    time = datetime.now().strftime("%H:%M:%S")
+
+                data = (index, temp, time)
                 err = self.db.write_temp_to_db(data)
                 if err is not None:
                     print(err)

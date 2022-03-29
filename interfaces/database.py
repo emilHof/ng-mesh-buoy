@@ -9,6 +9,8 @@ class DBInterface:
         parameters = config.config["db"]
         self.db_file = parameters["file"]
         self.make_tables()
+        self.hasGPS = False
+        self.gps = None
         self.gps_index = self.fetch_indices()[0][0]
         self.temp_index = self.fetch_indices()[1][0]
         self.rfid_index = self.fetch_indices()[2][0]
@@ -67,7 +69,7 @@ class DBInterface:
     def write_temp_to_db(self, new_entry: tuple):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute("""INSERT INTO temp(id, temp) VALUES(?, ?)""", new_entry)
+        cursor.execute("""INSERT INTO temp(id, temp, time) VALUES(?, ?, ?)""", new_entry)
         con.commit()
         con.close()
 
@@ -82,10 +84,10 @@ class DBInterface:
 
     """ read_loc_db returns all of the entries in the location and time table of the database """
 
-    def read_loc_db(self) -> list:
+    def read_loc_db(self, limit) -> list:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute('SELECT * FROM location_and_time')
+        cursor.execute('SELECT * FROM location_and_time LIMIT ?', limit)
         print("trying to fetch entries")
         rows = cursor.fetchall()
         for row in rows:
@@ -94,10 +96,10 @@ class DBInterface:
 
     """ read_temp_db returns all of the entries in the temp table of the database """
 
-    def read_temp_db(self) -> list:
+    def read_temp_db(self, limit) -> list:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute('SELECT * FROM temp')
+        cursor.execute('SELECT * FROM temp LIMIT ?', limit)
         print("trying to fetch entries")
         rows = cursor.fetchall()
         for row in rows:
