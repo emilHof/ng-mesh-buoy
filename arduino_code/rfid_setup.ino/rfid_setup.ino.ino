@@ -140,6 +140,19 @@ void handleCardDetected() {
         cardid |= uid[3]; 
 //        Serial.print(" CardID #");
 //        Serial.println(cardid);
+
+       // Data seems to have been read ... spit it out
+        //Serial.println("Reading Block 4:");
+        //nfc.PrintHexChar(data, 16);
+        //Serial.println("");
+
+        //turbidity sensor
+        digitalWrite(LED_BUILTIN, HIGH); 
+        int sensorValue = analogRead(A0);// read the input on analog pin 0:
+        float voltage = sensorValue * (5.0 / 1024.0); // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
+        float ntu = (-1120.4*square(voltage))+(5742.3*voltage)-4352.9;                              //-1120.4*square(volt)+5742.3*volt-4352.9
+        Serial.println(ntu); // print out the value you read
+          
       }
 
       timeLastCardRead = millis();
