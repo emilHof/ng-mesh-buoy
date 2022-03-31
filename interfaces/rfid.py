@@ -21,13 +21,22 @@ class RFIDInterface(Port):
         self.index += 1
         index = self.index
         s = self.uart
+
         while True:
             if self.check:
                 """read a line and print."""
+
                 rfid_sig = ""
+                turb_data = ""
+
                 msg = s.read().decode()
+
                 while msg != '\n':
                     rfid_sig += msg
+                    msg = s.read().decode()
+
+                while msg != '\n':
+                    turb_data += msg
                     msg = s.read().decode()
 
                 if self.hasGPS:
@@ -36,12 +45,20 @@ class RFIDInterface(Port):
                 else:
                     time = datetime.now().strftime("%H:%M:%S")
 
-                signal = (index, rfid_sig, time)
-                err = self.db.write_rfid_to_db(signal)
+                rfid_entry = (index, rfid_sig, time)
+                turb_entry = (index, turb_data, time)
+
+                err = self.db.write_rfid_to_db(rfid_entry)
+                err = self.db.write_turb_to_db(turb_entry)
+
                 if err is not None:
                     print(err)
+
                 index += 1
-                print("committed new temp data to the database:", rfid_sig)
+
+                print("committed new rfid data to the database:", rfid_sig)
+                print("committed new turb data to the database:", turb_data)
+
                 await asyncio.sleep(1)
             else:
                 await asyncio.sleep(60)

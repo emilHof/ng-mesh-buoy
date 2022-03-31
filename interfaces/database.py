@@ -11,48 +11,71 @@ class DBInterface:
         self.make_tables()
         self.hasGPS = False
         self.gps = None
-        self.gps_index = self.fetch_indices()[0][0]
-        self.temp_index = self.fetch_indices()[1][0]
-        self.rfid_index = self.fetch_indices()[2][0]
+        indices = self.fetch_indices()
+        self.gps_index = indices[0][0]
+        self.temp_index = indices[1][0]
+        self.temp_index = indices[2][0]
+        self.rfid_index = indices[3][0]
 
     """ settings returns the current name of the .db file """
 
     def settings(self) -> str:
         return self.db_file
 
+    """ make all the tables for the database if they don't exist already """
+
     def make_tables(self):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
+
         create_gps_data_format = """CREATE TABLE IF NOT EXISTS
                                    location_and_time(id INTEGER, location TEXT, time TEXT)"""
+
         create_temp_data_format = """CREATE TABLE IF NOT EXISTS
-                                    temp(id INTEGER, temp TEXT)"""
+                                    temp(id INTEGER, temp TEXT, time TEXT)"""
+
+        create_turb_data_format = """CREATE TABLE IF NOT EXISTS
+                                    turb(id INTEGER, temp TEXT, time TEXT)"""
 
         create_rfid_data_format = """CREATE TABLE IF NOT EXISTS
                                     rfid(id INTEGER, rfid TEXT, time TEXT)"""
+
+        # execute all the commands
         cursor.execute(create_gps_data_format)
         cursor.execute(create_temp_data_format)
+        cursor.execute(create_turb_data_format)
         cursor.execute(create_rfid_data_format)
+
         con.commit()
         con.close()
 
     def fetch_indices(self):
         conn = sqlite3.connect(self.db_file)  # Connecting to sqlite
         cursor = conn.cursor()  # Creating a cursor object using the cursor() method
+
         cursor.execute('''SELECT id from location_and_time ORDER BY id DESC LIMIT 1''')  # Retrieving data
         gps_index = cursor.fetchone()  # Fetching 1st row from the table
+
         cursor.execute('''SELECT id from temp ORDER BY id DESC LIMIT 1''')  # Retrieving data
         temp_index = cursor.fetchone()  # Fetching 1st row from the table
+
+        cursor.execute('''SELECT id from turb ORDER BY id DESC LIMIT 1''')  # Retrieving data
+        turb_index = cursor.fetchone()  # Fetching 1st row from the table
+
         cursor.execute('''SELECT id from rfid ORDER BY id DESC LIMIT 1''')  # Retrieving data
         rfid_index = cursor.fetchone()  # Fetching 1st row from the table
+
         conn.close()  # Closing the connection
         if gps_index is None:
             gps_index = 0, 0
         if temp_index is None:
             temp_index = 0, 0
+        if turb_index is None:
+            turb_index = 0, 0
         if rfid_index is None:
             rfid_index = 0, 0
-        result = [gps_index, temp_index, rfid_index]
+
+        result = [gps_index, temp_index, turb_index, rfid_index]
         return result
 
     """ write_loc_to_db writes the passed tuple to the location and time table in the database"""
@@ -70,6 +93,15 @@ class DBInterface:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
         cursor.execute("""INSERT INTO temp(id, temp, time) VALUES(?, ?, ?)""", new_entry)
+        con.commit()
+        con.close()
+
+    """ write_turb_to_db writes the passed tuple to the rfid table in the database"""
+
+    def write_turb_to_db(self, new_entry: tuple):
+        con = sqlite3.connect(self.db_file)
+        cursor = con.cursor()
+        cursor.execute("""INSERT INTO turb(id, trub, time) VALUES(?, ?, ?)""", new_entry)
         con.commit()
         con.close()
 
