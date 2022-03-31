@@ -46,7 +46,7 @@ class RFIDInterface(Port):
                     time = self.gps.get_time()
                 else:
                     now = datetime.now()
-                    time = str(now.hour) + " " + str(now.minute) + " " + str(now.second) + " " + str(now.microsecond)
+                    time = str(now.hour) + " " + str(now.minute) + " " + str(now.second)
 
                 rfid_entry = (index, rfid_sig, time)
                 turb_entry = (index, turb_data, time)

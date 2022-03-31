@@ -84,9 +84,10 @@ class MessageHandler:
             print(length)
             self.radio.send_back("#size_" + str(length))
             for row in rows:
-                print("sent row of", row[0], row[1], row[2])
-                return_row = str(row[0]) + " " + row[1] + " " + row[2]
+                print("sent row of", row[0], row[1])
+                return_row = str(row[0]) + " " + row[1]
                 self.radio.send_back(return_row)
+            return ""
 
         if message.find("ping") != -1:
             print("found message:", message)
