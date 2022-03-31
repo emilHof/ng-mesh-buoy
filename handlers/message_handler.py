@@ -66,20 +66,27 @@ class MessageHandler:
 
             # find the index of the first length delimiter
             size_index = message.index("get_bulk_turb") + len("get_bulk_turb")
+
             size = ""
 
-            while int(message[size_index]) >= 0:
+            while message[size_index] != "_":
                 size += message[size_index]
+                size_index += 1
+
+            print("size:", size)
 
             size = int(size)
+
+            print("size:", type(size))
 
             rows = self.db.read_turb_db(size)
             length = len(rows)
             print(length)
             self.radio.send_back("#size_" + str(length))
             for row in rows:
-                print("sent row of", row[1])
-                self.radio.send_back(row[1])
+                print("sent row of", row[0], row[1], row[2])
+                return_row = str(row[0]) + " " + row[1] + " " + row[2]
+                self.radio.send_back(return_row)
 
         if message.find("ping") != -1:
             print("found message:", message)

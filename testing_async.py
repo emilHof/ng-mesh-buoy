@@ -3,6 +3,7 @@ from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface
 from interfaces.database import DBInterface
 from handlers.message_handler import MessageHandler
+from interfaces.rfid import RFIDInterface
 import asyncio
 
 radio_settings = {
@@ -28,17 +29,23 @@ db_setting = {
 async def main():
     config.set_specific("radio", "port", "/dev/ttyUSB2")
     config.set_specific("radio", "rate", 9600)
-    config.set_specific("db", "file", "local_data")
+    config.set_specific("rfid", "port", "/dev/ttyACM0")
+    config.set_specific("rfid", "rate", 9600)
+    config.set_specific("db", "file", "local_data.db")
 
     xbee = RadioInterface()
-    xbee.send_test_string("@ping xbee online")
+    xbee.send_test_string("xbee online")
 
     msg_handler = MessageHandler()
 
+    rfid = RFIDInterface()
+
+
     # xbee.send_test_string("@get_all_temp")
 
-    # stopped = await asyncio.gather(msg_handler.propagate_message(), gps.log_location_and_time())
-    stopped = await msg_handler.propagate_message()
+    stopped = await asyncio.gather(msg_handler.propagate_message(), rfid.check_rfid())
+
+    # stopped = await msg_handler.propagate_message()
 
     print(stopped)
 
