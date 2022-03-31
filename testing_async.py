@@ -21,7 +21,7 @@ temp_settings = {
 }
 
 db_setting = {
-    "file": "local_data"
+    "file": "local_data.db"
 }
 
 
@@ -31,7 +31,7 @@ async def main():
     config.set_specific("db", "file", "local_data")
 
     xbee = RadioInterface()
-    xbee.send_test_string("xbee online")
+    xbee.send_test_string("@ping xbee online")
 
     msg_handler = MessageHandler()
 
