@@ -24,6 +24,7 @@
     This is an example sketch for the Adafruit PN532 NFC/RFID breakout boards
     This library works with the Adafruit NFC breakout 
       ----> https://www.adafruit.com/products/364
+      
  
     Check out the links above for our tutorials and wiring diagrams 
     These chips use I2C to communicate
@@ -110,6 +111,29 @@ void loop(void) {
 
         // Try to read the contents of block 4
         success = nfc.mifareclassic_ReadDataBlock(4, data);
+    
+        if (success)
+        {
+          // Data seems to have been read ... spit it out
+          //Serial.println("Reading Block 4:");
+          //nfc.PrintHexChar(data, 16);
+          //Serial.println("");
+
+          //turbidity sensor
+          digitalWrite(LED_BUILTIN, HIGH); 
+          int sensorValue = analogRead(A0);// read the input on analog pin 0:
+          float voltage = sensorValue * (5.0 / 1024.0); // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
+          float ntu = (-1120.4*square(voltage))+(5742.3*voltage)-4352.9;                              //-1120.4*square(volt)+5742.3*volt-4352.9
+          Serial.println(ntu); // print out the value you read:
+
+      
+          // Wait a bit before reading the card again
+          delay(1000);
+        }
+        else
+        {
+          Serial.println("Ooops ... unable to read the requested block.  Try another key?");
+        }
       }
       else
       {
