@@ -67,8 +67,8 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 void setup(void) {
   Serial.begin(9600);
   while (!Serial) delay(10); // for Leonardo/Micro/Zero
-
-  Serial.println("Hello!");
+//
+//  Serial.println("Hello!");
 
   nfc.begin();
 
@@ -125,7 +125,7 @@ void handleCardDetected() {
 
     if (success) {
       // Display some basic information about the card
-      Serial.print("UID_Value: ");
+//      Serial.print("UID_Value: ");
       nfc.PrintHex(uid, uidLength);
       
       if (uidLength == 4)

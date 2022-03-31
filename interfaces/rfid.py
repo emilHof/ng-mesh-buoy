@@ -58,8 +58,10 @@ class RFIDInterface(Port):
 
                 index += 1
 
-                print("committed new rfid data to the database:", rfid_sig)
-                print("committed new turb data to the database:", turb_data)
+                print("committed new rfid data to the database:" + rfid_sig)
+                print(time)
+                print("committed new turb data to the database:" + turb_data)
+                print(time)
 
                 await asyncio.sleep(1)
             else:
