@@ -35,6 +35,8 @@ class RFIDInterface(Port):
                     rfid_sig += msg
                     msg = s.read().decode()
 
+                msg = s.read().decode()
+
                 while msg != '\n':
                     turb_data += msg
                     msg = s.read().decode()
