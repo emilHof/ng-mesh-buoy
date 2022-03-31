@@ -58,7 +58,8 @@ class MessageHandler:
             result = self.temp.get_temp()
             self.radio.send_back(result)
 
-        if message.find("get_all_temp") != -1:
+        if message.find("get_bulk_temp") != -1:
+            sizeIndex = message.index("get_bulk_temp")+len("get_bulk_temp")
             rows = self.db.read_temp_db()
             length = len(rows)
             print(length)
