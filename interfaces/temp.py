@@ -43,10 +43,11 @@ class TempInterface(Port):
                     temp += msg
                     msg = s.read().decode()
 
+                # check if there is a GPS connected
                 if self.hasGPS:
-                    time = self.gps.get_time()
+                    time = self.gps.get_time()  # if yes then use the GPS time
                 else:
-                    time = datetime.now().strftime("%H:%M:%S")
+                    time = datetime.now().strftime("%H:%M:%S")  # if no use built-in time
 
                 data = (index, temp, time)
                 err = self.db.write_temp_to_db(data)
