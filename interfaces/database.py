@@ -35,7 +35,7 @@ class DBInterface:
                                     temp(id INTEGER, temp TEXT, time TEXT)"""
 
         create_turb_data_format = """CREATE TABLE IF NOT EXISTS
-                                    turb(id INTEGER, temp TEXT, time TEXT)"""
+                                    turb(id INTEGER, turb TEXT, time TEXT)"""
 
         create_rfid_data_format = """CREATE TABLE IF NOT EXISTS
                                     rfid(id INTEGER, rfid TEXT, time TEXT)"""
@@ -101,7 +101,7 @@ class DBInterface:
     def write_turb_to_db(self, new_entry: tuple):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute("""INSERT INTO turb(id, trub, time) VALUES(?, ?, ?)""", new_entry)
+        cursor.execute("""INSERT INTO turb(id, turb, time) VALUES(?, ?, ?)""", new_entry)
         con.commit()
         con.close()
 
