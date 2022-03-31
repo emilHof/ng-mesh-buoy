@@ -5,23 +5,7 @@ from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface
 from interfaces.temp import TempInterface
 
-
-# async def propagate_message(xbee, gps) -> bool:
-#     message_handler = MessageHandler()
-#     while True:
-#         message = await xbee.listen_async()
-#         if message.startswith("@"):
-#             err = message_handler.handle_message(message)
-#             if err is not None:
-#                 print(err)
-#         elif message.startswith("&stop"):
-#             gps.log = False
-#             return True
-#         elif message.startswith("#size_"):
-#             await message_handler.handle_block(message)
-#         else:
-#             print("message was not handled!")
-#             print(message)
+# def get_bulk_data:
 
 
 class MessageHandler:
@@ -59,8 +43,37 @@ class MessageHandler:
             self.radio.send_back(result)
 
         if message.find("get_bulk_temp") != -1:
-            sizeIndex = message.index("get_bulk_temp")+len("get_bulk_temp")
-            rows = self.db.read_temp_db()
+
+            # find the index of the first length delimiter
+            size_index = message.index("get_bulk_temp")+len("get_bulk_temp")
+            size = ""
+
+            while int(message[size_index]) >= 0:
+                size += message[size_index]
+
+            size = int(size)
+
+            rows = self.db.read_temp_db(size)
+            length = len(rows)
+            print(length)
+            self.radio.send_back("#size_" + str(length))
+            for row in rows:
+                print("sent row of", row[0], row[1], row[2])
+                return_row = row[0] + " " + row[1] + " " + row[2]
+                self.radio.send_back(return_row)
+
+        if message.find("get_bulk_turb") != -1:
+
+            # find the index of the first length delimiter
+            size_index = message.index("get_bulk_turb") + len("get_bulk_turb")
+            size = ""
+
+            while int(message[size_index]) >= 0:
+                size += message[size_index]
+
+            size = int(size)
+
+            rows = self.db.read_turb_db(size)
             length = len(rows)
             print(length)
             self.radio.send_back("#size_" + str(length))

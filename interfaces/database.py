@@ -137,3 +137,27 @@ class DBInterface:
         for row in rows:
             print(row)
         return rows
+
+    """ read_temp_db returns all of the entries in the temp table of the database """
+
+    def read_turb_db(self, limit) -> list:
+        con = sqlite3.connect(self.db_file)
+        cursor = con.cursor()
+        cursor.execute('SELECT * FROM turb LIMIT ?', limit)
+        print("trying to fetch entries")
+        rows = cursor.fetchall()
+        for row in rows:
+            print(row)
+        return rows
+
+    """ read_temp_db returns all of the entries in the temp table of the database """
+
+    def read_rfid_db(self, limit) -> list:
+        con = sqlite3.connect(self.db_file)
+        cursor = con.cursor()
+        cursor.execute('SELECT * FROM rfid LIMIT ?', limit)
+        print("trying to fetch entries")
+        rows = cursor.fetchall()
+        for row in rows:
+            print(row)
+        return rows
