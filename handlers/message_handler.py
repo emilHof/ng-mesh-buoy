@@ -33,7 +33,7 @@ class MessageHandler:
 
             rows = self.get_bulk_data(message)
 
-            self.radio.send_back("#size_"+str(len(rows)))
+            self.radio.send_back("#size_" + str(len(rows)))
             await asyncio.sleep(1.5)
             for row in rows:
                 self.radio.send_back(row)
@@ -110,6 +110,9 @@ class MessageHandler:
         return return_rows
 
     async def handle_block(self, message):
+
+        print("listening in block")
+
         self.propagate = False
         rows = []
         length = message[6:]
@@ -117,16 +120,21 @@ class MessageHandler:
         if length > 50:
             length = 50
         fail_counter = 0
-        for i in range(0, length):
-            row = await self.radio.listen_async_timed(1, 5)
-            print(i, "found message:", row)
-            if row == "":
-                print("failed to find message", fail_counter)
+
+        for i in range(0, length):  # range over the rows
+            row = await self.radio.listen_async_timed(1, 10)
+
+            if row == "":  # if too many messages are missed in a row the process is canceled
+                # print("failed to find message", fail_counter)
                 fail_counter += 1
                 if fail_counter > 5:
                     break
-            rows.append(row)
-        for row in rows:
+
+                continue
+
+            rows.append(row)  # append row if data was received
+
+        for row in rows:  # print the rows when all are finalized
             print(row)
         self.propagate = True
 
