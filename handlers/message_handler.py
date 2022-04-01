@@ -17,7 +17,7 @@ class MessageHandler:
     def connect_radio(self):
         self.radio = RadioInterface()
 
-    def handle_message(self, message: str) -> str:
+    async def handle_message(self, message: str) -> str:
         return_message = ""
         if message.find("get_location") != -1:
             self.gps = GPSInterface()
@@ -133,7 +133,7 @@ class MessageHandler:
             while self.propagate:
                 message = await self.radio.listen_async()
                 if message.startswith("@"):
-                    err = self.handle_message(message)
+                    err = await self.handle_message(message)
                     if err is not None:
                         print(err)
                 elif message.startswith("&stop"):
