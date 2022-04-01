@@ -98,17 +98,19 @@ class GPSInterface(Port):
         long = "Long: {0:.6f}".format(self.gps.longitude)
         return lat + " " + long
 
-    def get_time(self):
+    async def get_time(self):
         attempts = 0
-        while attempts < 10:
+        utc_time = ""
+        while attempts < 5:
             self.gps.update()
             if not self.gps.has_fix:
                 print("waiting for fix...")
-                time.sleep(1)
+                await asyncio.sleep(1)
                 attempts += 1
                 continue
-            attempts = 10
-        utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
+            utc_time = "{}".format(_format_datetime(self.gps.timestamp_utc))
+            attempts = 5
+
         return utc_time
 
     async def log_location_and_time(self):

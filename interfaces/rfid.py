@@ -43,7 +43,7 @@ class RFIDInterface(Port):
 
                 if self.hasGPS:
                     self.gps = GPSInterface()
-                    time = self.gps.get_time()
+                    time = await self.gps.get_time()
                 else:
                     now = datetime.now()
                     time = str(now.hour) + " " + str(now.minute) + " " + str(now.second)
@@ -59,11 +59,11 @@ class RFIDInterface(Port):
 
                 index += 1
 
-                print("committed new rfid data to the database:" + rfid_sig)
-                print(time)
-                print("committed new turb data to the database:" + turb_data)
-                print(time)
+                # print("committed new rfid data to the database:" + rfid_sig)
+                # print(time)
+                # print("committed new turb data to the database:" + turb_data)
+                # print(time)
 
-                await asyncio.sleep(1)
+                await asyncio.sleep(3)
             else:
                 await asyncio.sleep(60)
