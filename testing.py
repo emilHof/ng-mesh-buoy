@@ -1,38 +1,20 @@
 import config.config as config
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface
+from interfaces.database import DBInterface
+from handlers.message_handler import MessageHandler
 
 
-def run_test():
-    print(config.config)
+def db_fetch_and_send_test():
+    config.set_specific("db", "file", "local_data.db")
+    fetch_string = "@turb_get_bulk_5_"
 
+    msgHandler = MessageHandler()
 
-radio_settings = {
-    "port": "/dev/ttyUSB3",
-    "rate": 9600,
-}
+    rows = msgHandler.get_bulk_data(fetch_string)
 
-gps_settings = {
-    "port": "/dev/ttyUSB0",
-    "rate": 9600,
-}
+    for row in rows:
+        print(row)
 
-db = {
-    "file": "local_data.db"
-}
+db_fetch_and_send_test()
 
-config.set_config(radio_settings, gps_settings, db)
-#
-# xbee = RadioInterface()
-#
-# xbee.send_test_string("&stop")
-# print("message sent!")
-#
-# message = xbee.listen()
-# print(message)
-#
-# run_test()
-
-gps = GPSInterface()
-
-gps.print_basics()
