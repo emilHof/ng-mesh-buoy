@@ -34,8 +34,10 @@ class MessageHandler:
             rows = self.get_bulk_data(message)
 
             self.radio.send_back("#size_"+str(len(rows)))
+            await asyncio.sleep(1.5)
             for row in rows:
                 self.radio.send_back(row)
+                await asyncio.sleep(1.5)
 
         if message.find("ping") != -1:
             print("found message:", message)
