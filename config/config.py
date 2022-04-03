@@ -17,6 +17,10 @@ config = {
     },
     "db": {
         "file": None,
+    },
+    "time": {
+        "time_stamp": None,
+        "time_last": None
     }
 
 }

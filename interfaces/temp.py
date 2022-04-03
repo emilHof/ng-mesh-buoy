@@ -1,6 +1,6 @@
 from interfaces.database import DBInterface
 from interfaces.ports import Port
-from interfaces.gps import GPSInterface
+from interfaces.gps import get_time_sync
 from datetime import datetime
 import asyncio
 
@@ -31,8 +31,6 @@ class TempInterface(Port):
         s = self.uart
         self.db.temp_index += 1
         index = self.db.temp_index
-        if self.hasGPS:
-            self.gps = GPSInterface()
 
         while True:
             if self.log:
@@ -45,7 +43,7 @@ class TempInterface(Port):
 
                 # check if there is a GPS connected
                 if self.hasGPS:
-                    time = self.gps.get_time()  # if yes then use the GPS time
+                    time = get_time_sync().strftime("%H:%M:%S")  # if yes then use the GPS time
                 else:
                     time = datetime.now().strftime("%H:%M:%S")  # if no use built-in time
 

@@ -1,20 +1,62 @@
+import datetime
 import time
+import datetime
+
 import adafruit_gps
+import config.config as config
 from interfaces.database import DBInterface
 from interfaces.ports import Port
 import asyncio
 
 
 # sets the data and time format
-def _format_datetime(datetime):
-    return "{:02}/{:02}/{} {:02}:{:02}:{:02}".format(
-        datetime.tm_mon,
-        datetime.tm_mday,
-        datetime.tm_year,
-        datetime.tm_hour,
-        datetime.tm_min,
-        datetime.tm_sec,
+def _format_datetime(dt):
+    return "{:02}:{:02}:{:02}".format(
+        dt.tm_hour,
+        dt.tm_min,
+        dt.tm_sec,
     )
+
+
+def time_dif_gps(a, b):
+    d_second = int(b.second) - int(a.tm_sec)
+    d_minute = int(b.minute) - int(a.tm_min) + int(d_second / 60)
+    d_hour = int(b.hour) - int(a.tm_hour) + int(d_minute / 60)
+    return datetime.time(d_hour%24, d_minute%60, d_second%60)
+
+
+def time_dif(a, b):
+    d_second = int(b.second) - int(a.second)
+
+    d_minute = int(b.minute) - int(a.minute) + int(d_second / 60)
+
+    d_hour = int(b.hour) - int(a.hour) + int(d_minute / 60)
+
+    return datetime.time(d_hour % 24, d_minute % 60, d_second % 60)
+
+
+def time_add(a, b):
+    add_seconds = int(b.second) + int(a.second)
+
+    add_minutes = int(b.minute) + int(a.minute) + int(add_seconds / 60)
+
+    add_hour = int(a.hour) + int(b.hour) + int(add_minutes / 60)
+
+    return datetime.time(hour=(add_hour % 24), minute=(add_minutes % 60), second=(add_seconds % 60))
+
+
+def get_time_sync():
+    gps_time = config.config["time"]["time_stamp"]
+    time_last = config.config["time"]["time_last"]
+    time_guess = datetime.datetime.now()
+
+    print("print gps time", gps_time)
+
+    time_delta = time_dif(time_last, time_guess)
+
+    time_now = time_add(gps_time, time_delta)
+
+    return time_now
 
 
 class GPSInterface(Port):
@@ -24,6 +66,18 @@ class GPSInterface(Port):
         self.gps = adafruit_gps.GPS(self.uart, debug=False)
         self.log = True
         self.db = DBInterface()
+
+    async def set_onboard_time(self) -> datetime:
+        self.gps.update()
+        gps_time = await self.get_time_non_conv()
+        print("got the gps time")
+        print(gps_time)
+        time_last = datetime.datetime.now() - datetime.timedelta(seconds=1)
+        gps_time = datetime.time(gps_time.tm_hour, gps_time.tm_min, gps_time.tm_sec)
+        config.config["time"]["time_stamp"] = gps_time
+        config.config["time"]["time_last"] = time_last
+
+        return time_last
 
     def setup_gps(self):
         az = ','
@@ -80,10 +134,6 @@ class GPSInterface(Port):
                 # send data down USB port to radio.
                 # data_out_port.write(gps_data)
 
-    def close_gps(self):
-        print("Show's over. Close the ports!")
-        self.uart.close()
-
     def get_location(self):
         attempts = 0
         while attempts < 10:
@@ -110,8 +160,20 @@ class GPSInterface(Port):
                 continue
             utc_time = "{}".format(_format_datetime(self.gps.timestamp_utc))
             attempts = 5
-
         return utc_time
+
+    async def get_time_non_conv(self):
+        attempts = 0
+        while attempts < 5:
+            self.gps.update()
+            if not self.gps.has_fix:
+                print("waiting for fix...")
+                await asyncio.sleep(1)
+                attempts += 1
+                continue
+            attempts = 5
+
+        return self.gps.timestamp_utc
 
     async def log_location_and_time(self):
         self.db.gps_index += 1
@@ -141,4 +203,3 @@ class GPSInterface(Port):
                 await asyncio.sleep(30)
             else:
                 await asyncio.sleep(60)
-

@@ -1,6 +1,6 @@
 from interfaces.database import DBInterface
 from interfaces.ports import Port
-from interfaces.gps import GPSInterface
+from interfaces.gps import get_time_sync
 from datetime import datetime
 import asyncio
 
@@ -42,8 +42,7 @@ class RFIDInterface(Port):
                     msg = s.read().decode()
 
                 if self.hasGPS:
-                    self.gps = GPSInterface()
-                    time = await self.gps.get_time()
+                    time = get_time_sync().strftime("%H:%M:%S")
                 else:
                     now = datetime.now()
                     time = str(now.hour) + " " + str(now.minute) + " " + str(now.second)
