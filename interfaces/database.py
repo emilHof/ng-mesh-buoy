@@ -14,7 +14,7 @@ class DBInterface:
         indices = self.fetch_indices()
         self.gps_index = indices[0][0]
         self.temp_index = indices[1][0]
-        self.temp_index = indices[2][0]
+        self.turb_index = indices[2][0]
         self.rfid_index = indices[3][0]
 
     """ settings returns the current name of the .db file """
