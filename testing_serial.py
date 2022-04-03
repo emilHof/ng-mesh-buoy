@@ -57,7 +57,7 @@ async def main():
     # config.set_specific("radio", "rate", 9600)
     config.set_specific("rfid", "port", "/dev/ttyACM0")
     config.set_specific("rfid", "rate", 9600)
-    config.set_specific("db", "file", "local_data")
+    config.set_specific("db", "file", "local_data.db")
 
     rfid = RFIDInterface()
 

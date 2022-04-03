@@ -2,7 +2,7 @@ import asyncio
 
 from interfaces.database import DBInterface
 from interfaces.radio import RadioInterface
-from interfaces.gps import GPSInterface
+from interfaces.gps import GPSInterface, get_time_sync
 from interfaces.temp import TempInterface
 
 
@@ -25,9 +25,8 @@ class MessageHandler:
             return_message += " location: { " + location + " }"
 
         if message.find("get_time") != -1:
-            self.gps = GPSInterface()
-            time_utc = self.gps.get_time()
-            return_message += " utc time: { " + time_utc + " }"
+
+            return_message += "utc time: " + get_time_sync().strftime("%H:%M:%S")
 
         if message.find("_get_bulk_") != -1:
 
@@ -39,15 +38,15 @@ class MessageHandler:
                 self.radio.send_back(row)
                 await asyncio.sleep(1.5)
 
-        if message.find("ping") != -1:
-            print("found message:", message)
-            print("sent message:", "pong")
-            return_message = "@pong"
-
-        if message.find("pong") != -1:
-            print("found message:", message)
-            print("sent message:", "ping")
-            return_message = "@ping"
+        # if message.find("ping") != -1:
+        #     print("found message:", message)
+        #     print("sent message:", "pong")
+        #     return_message = "@pong"
+        #
+        # if message.find("pong") != -1:
+        #     print("found message:", message)
+        #     print("sent message:", "ping")
+        #     return_message = "@ping"
 
         if len(return_message) == 0:
             err = "no known commands found!"

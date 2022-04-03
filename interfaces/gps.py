@@ -64,14 +64,13 @@ class GPSInterface(Port):
     def __init__(self):
         super().__init__("gps")
         self.gps = adafruit_gps.GPS(self.uart, debug=False)
+        self.set_onboard_time()
         self.log = True
         self.db = DBInterface()
 
-    async def set_onboard_time(self) -> datetime:
+    def set_onboard_time(self) -> datetime:
         self.gps.update()
         gps_time = self.get_time_non_conv()
-        print("got the gps time")
-        print(gps_time)
         time_last = datetime.datetime.now() - datetime.timedelta(seconds=1)
         gps_time = datetime.time(gps_time.tm_hour, gps_time.tm_min, gps_time.tm_sec)
         config.config["time"]["time_stamp"] = gps_time
@@ -151,7 +150,7 @@ class GPSInterface(Port):
     def get_time(self):
         attempts = 0
         utc_time = ""
-        while attempts < 5:
+        while attempts < 20:
             self.gps.update()
             if not self.gps.has_fix:
                 print("waiting for fix...")
@@ -159,19 +158,19 @@ class GPSInterface(Port):
                 attempts += 1
                 continue
             utc_time = "{}".format(_format_datetime(self.gps.timestamp_utc))
-            attempts = 5
+            attempts = 20
         return utc_time
 
     def get_time_non_conv(self):
         attempts = 0
-        while attempts < 5:
+        while attempts < 20:
             self.gps.update()
             if not self.gps.has_fix:
                 print("waiting for fix...")
                 time.sleep(1)
                 attempts += 1
                 continue
-            attempts = 5
+            attempts = 20
 
         return self.gps.timestamp_utc
 
