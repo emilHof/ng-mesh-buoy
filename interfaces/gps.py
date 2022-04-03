@@ -69,7 +69,7 @@ class GPSInterface(Port):
 
     async def set_onboard_time(self) -> datetime:
         self.gps.update()
-        gps_time = await self.get_time_non_conv()
+        gps_time = self.get_time_non_conv()
         print("got the gps time")
         print(gps_time)
         time_last = datetime.datetime.now() - datetime.timedelta(seconds=1)
@@ -148,27 +148,27 @@ class GPSInterface(Port):
         long = "Long: {0:.6f}".format(self.gps.longitude)
         return lat + " " + long
 
-    async def get_time(self):
+    def get_time(self):
         attempts = 0
         utc_time = ""
         while attempts < 5:
             self.gps.update()
             if not self.gps.has_fix:
                 print("waiting for fix...")
-                await asyncio.sleep(1)
+                time.sleep(1)
                 attempts += 1
                 continue
             utc_time = "{}".format(_format_datetime(self.gps.timestamp_utc))
             attempts = 5
         return utc_time
 
-    async def get_time_non_conv(self):
+    def get_time_non_conv(self):
         attempts = 0
         while attempts < 5:
             self.gps.update()
             if not self.gps.has_fix:
                 print("waiting for fix...")
-                await asyncio.sleep(1)
+                time.sleep(1)
                 attempts += 1
                 continue
             attempts = 5
