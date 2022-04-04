@@ -17,7 +17,7 @@ class RFIDInterface(Port):
         self.db = DBInterface()
         self.index = self.db.rfid_index
 
-    async def check_rfid(self):
+    async def check_rfid(self, sensor):  # the sensor parameter lets you specify the stacked sensor
         self.index += 1
         index = self.index
         s = self.uart
@@ -27,7 +27,7 @@ class RFIDInterface(Port):
                 """read a line and print."""
 
                 rfid_sig = ""
-                turb_data = ""
+                sensor_data = ""
 
                 msg = s.read().decode()
 
@@ -38,7 +38,7 @@ class RFIDInterface(Port):
                 msg = s.read().decode()
 
                 while msg != '\n':
-                    turb_data += msg
+                    sensor_data += msg
                     msg = s.read().decode()
 
                 if self.hasGPS:
@@ -47,21 +47,24 @@ class RFIDInterface(Port):
                     now = datetime.now()
                     time = str(now.hour) + " " + str(now.minute) + " " + str(now.second)
 
-                rfid_entry = (index, rfid_sig, time)
-                turb_entry = (index, turb_data, time)
+                rfid_entry = (index, rfid_sig[:-2], time)
+                sensor_entry = (index, sensor_data[:-2], time)
 
                 err = self.db.write_rfid_to_db(rfid_entry)
-                err = self.db.write_turb_to_db(turb_entry)
+                print("committed new rfid data to the database:" + rfid_sig[:-2] + time)
+
+                # checks which secondary sensor is stacked on top of the rfid sensor
+                if sensor == "turb":
+                    err = self.db.write_turb_to_db(sensor_entry)
+                    print("committed new turb data to the database:" + sensor_data[:-2] + time)
+                elif sensor == "temp":
+                    err = self.db.write_temp_to_db(sensor_entry)
+                    print("committed new temp data to the database:" + sensor_data[:-2] + time)
 
                 if err is not None:
                     print(err)
 
                 index += 1
-
-                # print("committed new rfid data to the database:" + rfid_sig)
-                # print(time)
-                # print("committed new turb data to the database:" + turb_data)
-                # print(time)
 
                 await asyncio.sleep(3)
             else:
