@@ -8,11 +8,10 @@ import asyncio
 class RFIDInterface(Port):
     """ __init__ is called on initialization of every new RFIDInterface """
 
-    def __init__(self):
+    def __init__(self, gps):
         super().__init__("rfid")
         self.check = True
-        self.hasGPS = False
-        self.gps = None
+        self.hasGPS = gps
         self.turbidity = None
         self.db = DBInterface()
         self.index = self.db.rfid_index

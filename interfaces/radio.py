@@ -54,7 +54,6 @@ class RadioInterface:
         radio = config.config["radio"]  # gets the radio parameters from the config file
         self.port, self.rate = radio["port"], radio["rate"]  # initializes them as attributes
         self.xbee = devices.XBeeDevice(self.port, self.rate)  # creates a new xbee device as a RadioInterface attribute
-        print("new radio made with", self.port, self.rate)
 
     """ print_settings returns a tuple with the parameters of your RadioInterface """
     def get_settings(self) -> tuple:
