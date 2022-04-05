@@ -48,7 +48,7 @@ class MessageHandler:
 
             for row in reversed(rows):  # send back all the rows in their separate packets
                 self.radio.send_back(row)  # send back the row
-                time.sleep(.5)  # sleep for 1 sec between packets
+                time.sleep(.2)  # sleep for 1 sec between packets
 
         if len(return_message) == 0:
             err = "no known commands found!"
@@ -125,7 +125,7 @@ class MessageHandler:
 
         for i in range(0, length):  # range over the rows
             # listen for the next row with a sleep break of .5 sec with 10 tries permitted
-            row = await self.radio.listen_async_timed(sleep=.5, tries=10)
+            row = await self.radio.listen_async_timed(sleep=.1, tries=10)
 
             if row == "":  # if too many messages are missed in a row the process is canceled
                 fail_counter += 1
