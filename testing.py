@@ -73,6 +73,8 @@ async def bulk_radio_fetch_test(n, k):
 
     avg_dif = float(0.0)
 
+    start = datetime.datetime.now()
+
     while k != 0:
         xbee.send_test_string("@rfid_get_bulk_" + str(n) + "_")
         rows = await msg_handler.propagate_message(debug=True)
@@ -84,16 +86,24 @@ async def bulk_radio_fetch_test(n, k):
 
         time.sleep(3)
 
-    if avg_dif > 2.5:
-        print("bulk_radio_fetch_test test failed with on average " + str(avg_dif) + " packets dropped")
+    stop = datetime.datetime.now()
 
-    print("bulk_radio_fetch_test test passed with on average " + str(avg_dif) + " packets dropped")
+    trans_time = stop - start
+
+    if avg_dif > 2.5:
+        print("bulk_radio_fetch_test test failed with on average "
+              + str(avg_dif) +
+              " packets dropped in " + str(trans_time) + " time")
+
+    print("bulk_radio_fetch_test test passed with on average "
+          + str(avg_dif) +
+          " packets dropped in " + str(trans_time.seconds) + " seconds")
 
 
 async def main():
     # db_fetch_test()
     # await time_stamp_test()
-    await bulk_radio_fetch_test(5, 5)
+    await bulk_radio_fetch_test(10, 10)
 
 
 if __name__ == "__main__":
