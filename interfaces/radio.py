@@ -113,7 +113,7 @@ class RadioInterface:
 
         while message is None:
             print("no message found")
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
             message = xbee.read_data()
 
         print("message found")

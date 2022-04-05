@@ -22,7 +22,7 @@ class RFIDInterface(Port):
         s = self.uart
 
         while True:
-            if self.check:
+            if self.check and s.inWaiting() > 0:
                 """read a line and print."""
 
                 rfid_sig = ""
@@ -50,15 +50,15 @@ class RFIDInterface(Port):
                 sensor_entry = (index, sensor_data[:-2], time)
 
                 err = self.db.write_rfid_to_db(rfid_entry)
-                print("committed new rfid data to the database:" + rfid_sig[:-2] + time)
+                print("committed new rfid data to the database:" + rfid_sig[:-2] + " " + time)
 
                 # checks which secondary sensor is stacked on top of the rfid sensor
                 if sensor == "turb":
                     err = self.db.write_turb_to_db(sensor_entry)
-                    print("committed new turb data to the database:" + sensor_data[:-2] + time)
+                    print("committed new turb data to the database:" + sensor_data[:-2] + " " + time)
                 elif sensor == "temp":
                     err = self.db.write_temp_to_db(sensor_entry)
-                    print("committed new temp data to the database:" + sensor_data[:-2] + time)
+                    print("committed new temp data to the database:" + sensor_data[:-2] + " " + time)
 
                 if err is not None:
                     print(err)
@@ -67,4 +67,4 @@ class RFIDInterface(Port):
 
                 await asyncio.sleep(3)
             else:
-                await asyncio.sleep(60)
+                await asyncio.sleep(5)

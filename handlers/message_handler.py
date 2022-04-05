@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 from interfaces.database import DBInterface
 from interfaces.radio import RadioInterface
@@ -43,21 +44,11 @@ class MessageHandler:
 
             # send back a leading packet indicating a packet block and its size
             self.radio.send_back("#size_" + str(len(rows)))
-            await asyncio.sleep(1.5)  # 1.5 sec sleep allows other node to receive leading packet
+            time.sleep(1.5)  # 1.5 sec sleep allows other node to receive leading packet
 
-            for row in rows:  # send back all the rows in their separate packets
+            for row in reversed(rows):  # send back all the rows in their separate packets
                 self.radio.send_back(row)  # send back the row
-                await asyncio.sleep(1)  # sleep for 1 sec between packets
-
-        # if message.find("ping") != -1:
-        #     print("found message:", message)
-        #     print("sent message:", "pong")
-        #     return_message = "@pong"
-        #
-        # if message.find("pong") != -1:
-        #     print("found message:", message)
-        #     print("sent message:", "ping")
-        #     return_message = "@ping"
+                time.sleep(.5)  # sleep for 1 sec between packets
 
         if len(return_message) == 0:
             err = "no known commands found!"
@@ -112,13 +103,15 @@ class MessageHandler:
             rows = self.db.read_turb_db(size)
         elif tag == "loc":
             rows = self.db.read_temp_db(size)
+        elif tag == "rfid":
+            rows = self.db.read_rfid_db(size)
         else:
             rows = self.db.read_loc_db(size)
 
         return_rows = []  # create a variable to hold the message strings
 
         for row in rows:
-            return_rows.append(str(row[0]) + " " + row[1][:-4] + " " + row[0])
+            return_rows.append(str(row[0]) + " " + row[1] + " " + row[2])
 
         return return_rows
 

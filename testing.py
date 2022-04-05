@@ -11,9 +11,9 @@ from handlers.message_handler import MessageHandler
 
 def db_fetch_test():
     config.set_specific("db", "file", "local_data.db")
-    fetch_string = "@turb_get_bulk_5_"
+    fetch_string = "@rfid_get_bulk_5_"
 
-    msgHandler = MessageHandler()
+    msgHandler = MessageHandler(gps=False, radio=False)
 
     rows = msgHandler.get_bulk_data(fetch_string)
 

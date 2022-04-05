@@ -29,7 +29,7 @@ async def main():
 
     # set up an asynchronous loop to propagate messages and listen for rfid signals
     await asyncio.gather(
-        msg_handler.propagate_message(),
+        msg_handler.propagate_message(False),
         rfid.check_rfid("turb"),
     )
 

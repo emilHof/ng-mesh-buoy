@@ -29,8 +29,11 @@ def time_dif_gps(a, b):
 # time_dif finds the time delta between two datetime objects
 def time_dif(a, b):
     d_second = int(b.second) - int(a.second)
+
     d_minute = int(b.minute) - int(a.minute) + int(d_second / 60)
+
     d_hour = int(b.hour) - int(a.hour) + int(d_minute / 60)
+
     return datetime.time(d_hour % 24, d_minute % 60, d_second % 60)
 
 

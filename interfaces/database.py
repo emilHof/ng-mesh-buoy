@@ -119,7 +119,7 @@ class DBInterface:
     def read_loc_db(self, limit) -> list:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute('SELECT * FROM location_and_time LIMIT = ?', limit)
+        cursor.execute('SELECT * FROM location_and_time ORDER BY id DESC LIMIT  ' + str(limit) + "")
         print("trying to fetch entries")
         rows = cursor.fetchall()
         for row in rows:
@@ -131,7 +131,7 @@ class DBInterface:
     def read_temp_db(self, limit) -> list:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute('SELECT * FROM temp LIMIT = ?', limit)
+        cursor.execute('SELECT * FROM temp ORDER BY id DESC LIMIT  ' + str(limit) + "")
         print("trying to fetch entries")
         rows = cursor.fetchall()
         for row in rows:
@@ -143,7 +143,7 @@ class DBInterface:
     def read_turb_db(self, limit) -> list:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute('SELECT * FROM turb LIMIT  ' + str(limit) + "")
+        cursor.execute('SELECT * FROM turb ORDER BY id DESC LIMIT  ' + str(limit) + "")
         print("trying to fetch entries")
         rows = cursor.fetchall()
         for row in rows:
@@ -155,8 +155,8 @@ class DBInterface:
     def read_rfid_db(self, limit) -> list:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute('SELECT * FROM rfid LIMIT = ?', limit)
-        print("trying to fetch entries")
+        cursor.execute('SELECT * FROM rfid ORDER BY id DESC LIMIT  ' + str(limit) + "")
+        print("trying to fetch entries rfid")
         rows = cursor.fetchall()
         for row in rows:
             print(row)
