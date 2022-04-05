@@ -95,18 +95,11 @@ class MessageHandler:
         tag = message[tag_index:message.index("_get_bulk_")]
 
         # print(tag)
+        if tag == "loc":
+            tag = "location_and_time"
 
         # check the tag
-        if tag == "temp":
-            rows = self.db.read_temp_db(size)
-        elif tag == "turb":
-            rows = self.db.read_turb_db(size)
-        elif tag == "loc":
-            rows = self.db.read_temp_db(size)
-        elif tag == "rfid":
-            rows = self.db.read_rfid_db(size)
-        else:
-            rows = self.db.read_loc_db(size)
+        rows = self.db.read_db(tag, size)
 
         return_rows = []  # create a variable to hold the message strings
 

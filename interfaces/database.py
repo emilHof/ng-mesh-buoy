@@ -161,3 +161,15 @@ class DBInterface:
         for row in rows:
             print(row)
         return rows
+
+    """ read_temp_db returns all of the entries in the temp table of the database """
+
+    def read_db(self, table, limit) -> list:
+        con = sqlite3.connect(self.db_file)
+        cursor = con.cursor()
+        cursor.execute('SELECT * FROM ' + table + ' ORDER BY id DESC LIMIT  ' + str(limit) + "")
+        print("trying to fetch entries rfid")
+        rows = cursor.fetchall()
+        for row in rows:
+            print(row)
+        return rows
