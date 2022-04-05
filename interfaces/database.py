@@ -168,7 +168,6 @@ class DBInterface:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
         cursor.execute('SELECT * FROM ' + table + ' ORDER BY id DESC LIMIT  ' + str(limit) + "")
-        print("trying to fetch entries rfid")
         rows = cursor.fetchall()
         for row in rows:
             print(row)
