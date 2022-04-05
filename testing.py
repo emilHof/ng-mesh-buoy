@@ -76,7 +76,7 @@ async def bulk_radio_fetch_test(n, k):
     start = datetime.datetime.now()
 
     while k != 0:
-        xbee.send_test_string("@rfid_get_bulk_" + str(n) + "_")
+        xbee.send_test_string("@rturb_get_bulk_" + str(n) + "_")
         rows = await msg_handler.propagate_message(debug=True)
 
         dif = float(n - len(rows))
@@ -103,7 +103,7 @@ async def bulk_radio_fetch_test(n, k):
 async def main():
     # db_fetch_test()
     # await time_stamp_test()
-    await bulk_radio_fetch_test(10, 10)
+    await bulk_radio_fetch_test(20, 1)
 
 
 if __name__ == "__main__":
