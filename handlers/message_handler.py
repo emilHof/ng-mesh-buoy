@@ -123,7 +123,7 @@ class MessageHandler:
         return return_rows
 
     """ handle_block takes a block of related messages and stores them in an array """
-    async def handle_block(self, message):
+    async def handle_block(self, message, debug: bool) -> []:
 
         print("listening in block")
 
@@ -150,12 +150,16 @@ class MessageHandler:
 
             rows.append(row)  # append row if data was received
 
-        for row in rows:  # print the rows when all are finalized
-            print(row)
+        if debug:
+            for row in rows:  # print the rows when all are finalized
+                print(row)
+
         self.propagate = True
 
+        return rows
+
     """ propagate_message is a loop function that listens for incoming message """
-    async def propagate_message(self):
+    async def propagate_message(self, debug: bool):
         while True:
             while self.propagate:  # set self.propagate to false, to pause listening
                 message = await self.radio.listen_async()
@@ -167,7 +171,9 @@ class MessageHandler:
                         print(err)
 
                 elif message.startswith("#size_"):
-                    await self.handle_block(message)
+                    rows = await self.handle_block(message, debug)
+                    if debug:
+                        return rows
 
                 else:
                     print("message was not handled!")

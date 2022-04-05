@@ -62,10 +62,38 @@ async def time_stamp_test():
     print("test passed!")
 
 
-# db_fetch_test()
+async def bulk_radio_fetch_test(n, k):
+    config.set_specific("radio", "port", "/dev/ttyUSB2")
+    config.set_specific("radio", "rate", 9600)
+    config.set_specific("db", "file", "local_data.db")
+
+    xbee = RadioInterface()
+    msg_handler = MessageHandler(gps=False, radio=True)
+    msg_handler.connect_radio()
+
+    avg_dif = float(0.0)
+
+    while k != 0:
+        xbee.send_test_string("@rfid_get_bulk_" + str(n) + "_")
+        rows = await msg_handler.propagate_message(debug=True)
+
+        dif = float(n - len(rows))
+        avg_dif = (avg_dif + dif) / 2
+
+        k -= 1
+
+        time.sleep(3)
+
+    if avg_dif > 2.5:
+        print("bulk_radio_fetch_test test failed with on average " + str(avg_dif) + " packets dropped")
+
+    print("bulk_radio_fetch_test test passed with on average " + str(avg_dif) + " packets dropped")
+
 
 async def main():
-    await time_stamp_test()
+    # db_fetch_test()
+    # await time_stamp_test()
+    await bulk_radio_fetch_test(5, 5)
 
 
 if __name__ == "__main__":
