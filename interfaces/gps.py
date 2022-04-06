@@ -1,21 +1,65 @@
+import datetime
 import time
+import datetime
+
 import adafruit_gps
-import serial
-from interfaces.database import DBHandler
+import config.config as config
+from interfaces.database import DBInterface
 from interfaces.ports import Port
 import asyncio
 
 
 # sets the data and time format
-def _format_datetime(datetime):
-    return "{:02}/{:02}/{} {:02}:{:02}:{:02}".format(
-        datetime.tm_mon,
-        datetime.tm_mday,
-        datetime.tm_year,
-        datetime.tm_hour,
-        datetime.tm_min,
-        datetime.tm_sec,
+def _format_datetime(dt):
+    return "{:02}:{:02}:{:02}".format(
+        dt.tm_hour,
+        dt.tm_min,
+        dt.tm_sec,
     )
+
+
+# time_dif_gps finds the time delta between a datetime.time object and a gps time object
+def time_dif_gps(a, b):
+    d_second = int(b.second) - int(a.tm_sec)
+    d_minute = int(b.minute) - int(a.tm_min) + int(d_second / 60)
+    d_hour = int(b.hour) - int(a.tm_hour) + int(d_minute / 60)
+    return datetime.time(d_hour % 24, d_minute % 60, d_second % 60)
+
+
+# time_dif finds the time delta between two datetime objects
+def time_dif(a, b):
+    d_second = int(b.second) - int(a.second)
+
+    d_minute = int(b.minute) - int(a.minute) + int(d_second / 60)
+
+    d_hour = int(b.hour) - int(a.hour) + int(d_minute / 60)
+
+    return datetime.time(d_hour % 24, d_minute % 60, d_second % 60)
+
+
+# time_add adds two datetime objects
+def time_add(a, b):
+    add_seconds = int(b.second) + int(a.second)
+
+    add_minutes = int(b.minute) + int(a.minute) + int(add_seconds / 60)
+
+    add_hour = int(a.hour) + int(b.hour) + int(add_minutes / 60)
+
+    return datetime.time(hour=(add_hour % 24), minute=(add_minutes % 60), second=(add_seconds % 60))
+
+
+# get_time_sync returns the current onboard time based on the last cached gps time
+# and the elapsed onboard time since then
+def get_time_sync() -> datetime:
+    gps_time = config.config["time"]["time_stamp"]  # find the last cached gps time
+    time_last = config.config["time"]["time_last"]  # find the last onboard time when gps time was cached
+    time_guess = datetime.datetime.now()  # find the current processor time
+
+    time_delta = time_dif(time_last, time_guess)  # get the delta between the last and current processor time
+
+    time_now = time_add(gps_time, time_delta)  # add the delta to the last cached gps time
+
+    return time_now  # return the gps time
 
 
 class GPSInterface(Port):
@@ -23,8 +67,21 @@ class GPSInterface(Port):
     def __init__(self):
         super().__init__("gps")
         self.gps = adafruit_gps.GPS(self.uart, debug=False)
+        self.set_onboard_time()
+        self.db = DBInterface()
         self.log = True
-        self.db = DBHandler()
+
+    """ set_onboard_time fetches the current time from the gps and caches it in the config """
+    def set_onboard_time(self) -> datetime:
+        self.gps.update()  # update the gps to make sure the time is current
+        gps_time = self.get_time_non_conv()  # get the current time in un-converted format
+        time_last = datetime.datetime.now() - datetime.timedelta(seconds=1)  # get the current processor time
+        # convert the gps time into a datetime object
+        gps_time = datetime.time(gps_time.tm_hour, gps_time.tm_min, gps_time.tm_sec)
+        config.set_specific("time", "time_stamp", gps_time)  # set the time_stamp cache to gps_time
+        config.set_specific("time", "time_last", time_last)  # set the last_time cache to processor time
+
+        return time_last  # return the last processor time for testing purposes
 
     def setup_gps(self):
         az = ','
@@ -40,6 +97,7 @@ class GPSInterface(Port):
         self.gps.send_command(b"PMTK220,1000")
         print("gps setup!")
 
+    """ for testing and troubleshooting purposes to see make sure your gps module works """
     def print_basics(self):
         last_print = time.monotonic()
         while True:
@@ -81,10 +139,7 @@ class GPSInterface(Port):
                 # send data down USB port to radio.
                 # data_out_port.write(gps_data)
 
-    def close_gps(self):
-        print("Show's over. Close the ports!")
-        self.uart.close()
-
+    """ get_location returns a string with the latitude and longitude information """
     def get_location(self):
         attempts = 0
         while attempts < 10:
@@ -99,21 +154,39 @@ class GPSInterface(Port):
         long = "Long: {0:.6f}".format(self.gps.longitude)
         return lat + " " + long
 
+    """ get_time returns the current gps time in string format """
     def get_time(self):
         attempts = 0
-        while attempts < 10:
+        utc_time = ""
+        while attempts < 20:
             self.gps.update()
             if not self.gps.has_fix:
                 print("waiting for fix...")
                 time.sleep(1)
                 attempts += 1
                 continue
-            attempts = 10
-        utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
+            utc_time = "{}".format(_format_datetime(self.gps.timestamp_utc))
+            attempts = 20
         return utc_time
 
+    """ get_time_non_conv returns a tm object with the current gps time """
+    def get_time_non_conv(self):
+        attempts = 0
+        while attempts < 20:
+            self.gps.update()
+            if not self.gps.has_fix:
+                print("waiting for fix...")
+                time.sleep(1)
+                attempts += 1
+                continue
+            attempts = 20
+
+        return self.gps.timestamp_utc
+
+    """ log_location_and_time continuously logs the location and time of the buoy asynchronously """
     async def log_location_and_time(self):
-        index = 0
+        self.db.gps_index += 1
+        index = self.db.gps_index
         while True:
             if self.log:
                 attempts = 0
@@ -134,9 +207,8 @@ class GPSInterface(Port):
                 if err is not None:
                     print(err)
                 index += 1
-                # print("committed new "
-                #       "location and time data to the database:", location)
-                await asyncio.sleep(10)
+                print("committed new "
+                      "location and time data to the database:", location)
+                await asyncio.sleep(30)
             else:
                 await asyncio.sleep(60)
-
