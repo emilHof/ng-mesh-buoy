@@ -39,12 +39,17 @@ async def listening_async_timed(xbee, sleep, tries):
     print("listening...")
     data = xbee.read_data()
     message = data
-    if message is not None:
-        print("found a message")
-        return message.data.decode("utf8")
-    else:
-        await asyncio.sleep(sleep)
-        return xbee.listening()
+
+    while tries >= 0:
+        if message is not None:
+            print("found a message")
+            return message.data.decode("utf8")
+        else:
+            tries -= 1
+            await asyncio.sleep(sleep)
+            return xbee.listening()
+
+    return None
 
 
 class RadioInterface:
@@ -127,7 +132,7 @@ class RadioInterface:
 
         while message is None:
             if tries < 1:
-                return "no message found"
+                return ""
             print("no message found")
             await asyncio.sleep(timeout)
             message = xbee.read_data()

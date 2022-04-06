@@ -114,55 +114,7 @@ class DBInterface:
         con.commit()
         con.close()
 
-    """ read_loc_db returns all of the entries in the location and time table of the database """
-
-    def read_loc_db(self, limit) -> list:
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute('SELECT * FROM location_and_time ORDER BY id DESC LIMIT  ' + str(limit) + "")
-        print("trying to fetch entries")
-        rows = cursor.fetchall()
-        for row in rows:
-            print(row)
-        return rows
-
-    """ read_temp_db returns all of the entries in the temp table of the database """
-
-    def read_temp_db(self, limit) -> list:
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute('SELECT * FROM temp ORDER BY id DESC LIMIT  ' + str(limit) + "")
-        print("trying to fetch entries")
-        rows = cursor.fetchall()
-        for row in rows:
-            print(row)
-        return rows
-
-    """ read_temp_db returns all of the entries in the temp table of the database """
-
-    def read_turb_db(self, limit) -> list:
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute('SELECT * FROM turb ORDER BY id DESC LIMIT  ' + str(limit) + "")
-        print("trying to fetch entries")
-        rows = cursor.fetchall()
-        for row in rows:
-            print(row)
-        return rows
-
-    """ read_temp_db returns all of the entries in the temp table of the database """
-
-    def read_rfid_db(self, limit) -> list:
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute('SELECT * FROM rfid ORDER BY id DESC LIMIT  ' + str(limit) + "")
-        print("trying to fetch entries rfid")
-        rows = cursor.fetchall()
-        for row in rows:
-            print(row)
-        return rows
-
-    """ read_temp_db returns all of the entries in the temp table of the database """
+    """ read_db returns the specified amount of latest entries of a specified table """
 
     def read_db(self, table, limit) -> list:
         con = sqlite3.connect(self.db_file)
@@ -172,3 +124,30 @@ class DBInterface:
         for row in rows:
             print(row)
         return rows
+
+    async def check_latest(self, tables: []):
+        conn = sqlite3.connect(self.db_file)  # Connecting to sqlite
+        cursor = conn.cursor()  # Creating a cursor object using the cursor() method
+        indices = {
+            "loc": self.gps_index,
+            "turb": self.turb_index,
+            "temp": self.temp_index,
+            "rfid": self.rfid_index,
+        }
+
+        last_indices = {table: indices[table] for table in tables}
+
+        while True:
+            for table in tables:
+                cursor.execute('''SELECT id from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving Index
+                index = cursor.fetchone()
+                if index > last_indices[table]:
+                    cursor.execute('''SELECT * from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving data
+                    data = cursor.fetchone()
+
+                    data_str = ""
+                    for d in data:
+                        data_str += d
+
+                    config.enqueue_dep_queue(data_str)
+                    last_indices[table] += 1
