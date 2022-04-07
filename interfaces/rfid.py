@@ -49,19 +49,10 @@ class RFIDInterface(Port):
                 rfid_entry = (index, rfid_sig[:-2], time)
                 sensor_entry = (index, sensor_data[:-2], time)
 
-                err = self.db.write_rfid_to_db(rfid_entry)
-                print("committed new rfid data to the database:" + rfid_sig[:-2] + " " + time)
-
-                # checks which secondary sensor is stacked on top of the rfid sensor
-                if sensor == "turb":
-                    err = self.db.write_turb_to_db(sensor_entry)
-                    print("committed new turb data to the database:" + sensor_data[:-2] + " " + time)
-                elif sensor == "temp":
-                    err = self.db.write_temp_to_db(sensor_entry)
-                    print("committed new temp data to the database:" + sensor_data[:-2] + " " + time)
-
-                if err is not None:
-                    print(err)
+                self.db.write_rfid_to_db(rfid_entry)
+                self.db.write_data_to_db(sensor, sensor_entry)
+                print("committed new rfid data to the database: {}, at {}".format(rfid_sig[:-2], time))
+                print("committed new {} data to the database: {}, at {}".format(sensor, sensor_data[:-2], time))
 
                 index += 1
 

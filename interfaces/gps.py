@@ -130,8 +130,6 @@ class GPSInterface(Port):
                 # Time & date from GPS information
                 print("Fix timestamp: {}".format(_format_datetime(self.gps.timestamp_utc)))
                 # Time & date from internal RTC
-                #        print("RTC timestamp: {}".format(_format_datetime(the_rtc.datetime)))
-                # Time & date from time.localtime() function
                 local_time = time.localtime()
                 print("Local time: {}".format(_format_datetime(local_time)))
                 # convert from string to bytes
@@ -184,7 +182,7 @@ class GPSInterface(Port):
         return self.gps.timestamp_utc
 
     """ log_location_and_time continuously logs the location and time of the buoy asynchronously """
-    async def log_location_and_time(self):
+    async def log_location(self):
         self.db.gps_index += 1
         index = self.db.gps_index
         while True:
@@ -203,7 +201,7 @@ class GPSInterface(Port):
                 location = lat + " " + long
                 utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
                 data = (index, location, utc_time)
-                err = self.db.write_loc_to_db(data)
+                err = self.db.write_data_to_db("loca", data)
                 if err is not None:
                     print(err)
                 index += 1

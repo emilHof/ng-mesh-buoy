@@ -44,7 +44,7 @@ class MessageHandler:
         if message.find("get_location") != -1:
             self.gps = GPSInterface()
             location = self.gps.get_location()
-            return_message += " location: { " + location + " }"
+            return_message += "location: { " + location + " }"
 
         if message.find("get_time") != -1:  # adds the time to the return message
             return_message += "utc time: " + get_time_sync().strftime("%H:%M:%S")
@@ -97,9 +97,6 @@ class MessageHandler:
             size += message[size_index]
             size_index += 1
         size = int(size)
-
-        # print("size:", size)
-        # print(message)
 
         # find the tag of the bulk request (temp, loc,... )
         tag_index = message.index("_get_bulk_") - 4

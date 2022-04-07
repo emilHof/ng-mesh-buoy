@@ -1,3 +1,5 @@
+import asyncio
+
 import config.config as config
 import sqlite3
 
@@ -29,7 +31,7 @@ class DBInterface:
         cursor = con.cursor()
 
         create_gps_data_format = """CREATE TABLE IF NOT EXISTS
-                                   location_and_time(id INTEGER, location TEXT, time TEXT)"""
+                                   loca(id INTEGER, loca TEXT, time TEXT)"""
 
         create_temp_data_format = """CREATE TABLE IF NOT EXISTS
                                     temp(id INTEGER, temp TEXT, time TEXT)"""
@@ -53,7 +55,7 @@ class DBInterface:
         conn = sqlite3.connect(self.db_file)  # Connecting to sqlite
         cursor = conn.cursor()  # Creating a cursor object using the cursor() method
 
-        cursor.execute('''SELECT id from location_and_time ORDER BY id DESC LIMIT 1''')  # Retrieving data
+        cursor.execute('''SELECT id from loca ORDER BY id DESC LIMIT 1''')  # Retrieving data
         gps_index = cursor.fetchone()  # Fetching 1st row from the table
 
         cursor.execute('''SELECT id from temp ORDER BY id DESC LIMIT 1''')  # Retrieving data
@@ -116,6 +118,15 @@ class DBInterface:
 
     """ read_db returns the specified amount of latest entries of a specified table """
 
+    def write_data_to_db(self, table: str, new_entry: tuple):
+        con = sqlite3.connect(self.db_file)
+        cursor = con.cursor()
+        cursor.execute("""INSERT INTO {}(id, {}, time) VALUES(?, ?, ?)""".format(table, table), new_entry)
+        con.commit()
+        con.close()
+
+    """ read_db returns the specified amount of latest entries of a specified table """
+
     def read_db(self, table, limit) -> list:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
@@ -151,3 +162,5 @@ class DBInterface:
 
                     config.enqueue_dep_queue(data_str)
                     last_indices[table] += 1
+
+            await asyncio.sleep(5)
