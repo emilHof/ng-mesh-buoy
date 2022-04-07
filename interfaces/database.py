@@ -80,44 +80,7 @@ class DBInterface:
         result = [gps_index, temp_index, turb_index, rfid_index]
         return result
 
-    """ write_loc_to_db writes the passed tuple to the location and time table in the database"""
-
-    def write_loc_to_db(self, new_entry: tuple):
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute("""INSERT INTO location_and_time(id, location, time) VALUES(?, ?, ?)""", new_entry)
-        con.commit()
-        con.close()
-
-    """ write_temp_to_db writes the passed tuple to the temp table in the database"""
-
-    def write_temp_to_db(self, new_entry: tuple):
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute("""INSERT INTO temp(id, temp, time) VALUES(?, ?, ?)""", new_entry)
-        con.commit()
-        con.close()
-
-    """ write_turb_to_db writes the passed tuple to the rfid table in the database"""
-
-    def write_turb_to_db(self, new_entry: tuple):
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute("""INSERT INTO turb(id, turb, time) VALUES(?, ?, ?)""", new_entry)
-        con.commit()
-        con.close()
-
-    """ write_rfid_to_db writes the passed tuple to the rfid table in the database"""
-
-    def write_rfid_to_db(self, new_entry: tuple):
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute("""INSERT INTO rfid(id, rfid, time) VALUES(?, ?, ?)""", new_entry)
-        con.commit()
-        con.close()
-
-    """ read_db returns the specified amount of latest entries of a specified table """
-
+    """ write_data_to_db writes the passed tuple to the indicated table in the database"""
     def write_data_to_db(self, table: str, new_entry: tuple):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
