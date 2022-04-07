@@ -149,7 +149,7 @@ class DBInterface:
 
                     data_str = ""
                     for d in data:
-                        data_str += d
+                        data_str += str(d)
 
                     config.enqueue_dep_queue(data_str)
                     last_indices[table] += 1
