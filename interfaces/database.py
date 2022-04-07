@@ -141,7 +141,7 @@ class DBInterface:
             for table in tables:
                 cursor.execute('''SELECT id from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving Index
                 index = cursor.fetchone()
-                if index > last_indices[table]:
+                if index[0] > last_indices[table]:
                     cursor.execute('''SELECT * from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving data
                     data = cursor.fetchone()
 
