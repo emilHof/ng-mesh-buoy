@@ -1,3 +1,5 @@
+import asyncio
+
 import config.config as config
 import sqlite3
 
@@ -151,3 +153,5 @@ class DBInterface:
 
                     config.enqueue_dep_queue(data_str)
                     last_indices[table] += 1
+
+            await asyncio.sleep(3)

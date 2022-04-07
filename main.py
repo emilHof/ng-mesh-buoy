@@ -2,6 +2,7 @@ import asyncio
 
 import config.config as config
 from interfaces.rfid import RFIDInterface
+from interfaces.database import DBInterface
 from handlers.message_handler import MessageHandler
 
 radio_settings = {
@@ -26,11 +27,13 @@ async def main():
 
     rfid = RFIDInterface(gps=True)
     msg_handler = MessageHandler(gps=True, radio=True)
+    db = DBInterface()
 
     # set up an asynchronous loop to propagate messages and listen for rfid signals
     await asyncio.gather(
         msg_handler.propagate_message(False),
-        rfid.check_rfid("turb"),
+        rfid.check_rfid("temp"),
+        db.check_latest(["temp"])
     )
 
     return "all async loops exited"
