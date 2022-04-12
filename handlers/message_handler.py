@@ -148,9 +148,9 @@ class MessageHandler:
 
             rows.append(row)  # append row if data was received
 
-        # if debug:
-        #     for row in rows:  # print the rows when all are finalized
-        #         print(row)
+        if debug:
+            for row in rows:  # print the rows when all are finalized
+                print(row)
 
         self.propagate = True
 
