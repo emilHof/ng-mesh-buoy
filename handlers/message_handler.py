@@ -46,6 +46,27 @@ class MessageHandler:
 
     """ handle_message takes a message string that started with an @ and performs logic on it """
 
+    def get_location(self):
+        # check if there is a gps connected
+        if self.hasGPS:
+            location = self.gps.get_location()
+
+            # add the return message to the departure queue
+            self.dep_queue.put(("location: { " + location + " }", 0))
+
+    def get_time(self):
+        # put the time into the departure queue
+        self.dep_queue.put(("utc time: " + get_time_sync().strftime("%H:%M:%S"), 0))
+
+    def handle_bulk(self, cmd: str):
+        rows = self.get_bulk_data(cmd)  # get the data from the db
+
+        # send back a leading packet indicating a packet block and its size, sleep for 1.5 sec between packets
+        self.dep_queue.put(("#size_" + str(len(rows)), 1.5))
+
+        for row in reversed(rows):  # send back all the rows in their separate packets
+            self.dep_queue.put((row, .2))  # send back the row, sleep for .2 sec between packets
+
     async def handle_message(self, message: str) -> str:
         return_message = ""
         if message.find("get_location") != -1:
