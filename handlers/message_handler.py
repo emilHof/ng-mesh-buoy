@@ -17,10 +17,17 @@ def check_dep_queue():
 
 
 class MessageHandler:
-    def __init__(self, gps, radio):
+    def __init__(self, in_queue: asyncio.Queue, dep_queue: asyncio.Queue, gps=False, radio=False):
         self.db = DBInterface()
         self.propagate = True
         self.hasGPS = gps
+        self.hasRadio = radio
+        self.in_queue = in_queue
+        self.dep_queue = dep_queue
+        self.function_dict = {
+            "get_location": self.get_location,
+            "get_time": self.get_time,
+        }
 
         if radio:
             self.radio = RadioInterface()
@@ -179,3 +186,22 @@ class MessageHandler:
                         print(message)
 
             await asyncio.sleep(10)
+
+    async def handle_msg(self):
+        while True:
+
+            msg = await self.in_queue.get()
+
+            if msg.startswith("@"):
+                self.handle_cmd(msg)
+
+    def handle_cmd(self, msg: str):
+
+        cmd = msg.split("@")[1]
+
+        if cmd in self.function_dict:
+            function = self.function_dict[cmd]
+            function()
+
+        elif cmd.index("_get_bulk_") != 1:
+            self.handle_bulk(cmd)
