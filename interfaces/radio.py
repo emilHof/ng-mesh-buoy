@@ -10,6 +10,7 @@ class RadioInterface:
         radio = config.config["radio"]  # gets the radio parameters from the config file
         self.port, self.rate = radio["port"], radio["rate"]  # initializes them as attributes
         self.xbee = devices.XBeeDevice(self.port, self.rate)  # creates a new xbee device as a RadioInterface attribute
+        print("xbee created!")
         self.in_queue = in_queue
         self.dep_queue = dep_queue
 
@@ -17,7 +18,7 @@ class RadioInterface:
     def get_settings(self) -> tuple:
         return self.port, self.rate
 
-    async def listen(self, sleep: int = 1):
+    async def listen(self, sleep: int = 1, debug: bool = False):
         while True:
             xbee = self.xbee
 
@@ -27,16 +28,19 @@ class RadioInterface:
 
             if msg is not None:
                 self.in_queue.put_nowait(msg.data.decode("utf8"))
+                if debug: print(msg.data.decode("utf8"))
 
             xbee.close()
 
             await asyncio.sleep(sleep)
 
-    async def send(self):
+    async def send(self, debug: bool = False):
         xbee = self.xbee
 
         while True:
             task = await self.dep_queue.get()  # get task from the dep_queue
+
+            if debug: print(f'sent message: {task[0]}')
 
             out_msg, sleep_time = task[0], task[1]  # get the msg and sleep time from the task item
 
