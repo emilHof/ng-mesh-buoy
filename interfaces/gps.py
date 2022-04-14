@@ -154,21 +154,16 @@ class GPSInterface(Port):
 
     """ get_time returns the current gps time in string format """
     def get_time(self):
-        attempts = 0
-        utc_time = ""
-        while attempts < 20:
-            self.gps.update()
-            if not self.gps.has_fix:
-                print("waiting for fix...")
-                time.sleep(1)
-                attempts += 1
-                continue
-            utc_time = "{}".format(_format_datetime(self.gps.timestamp_utc))
-            attempts = 20
+        t = self.__get_t()
+        utc_time = "{}".format(_format_datetime(t))
+
         return utc_time
 
     """ get_time_non_conv returns a tm object with the current gps time """
     def get_time_non_conv(self):
+        return self.__get_t()
+
+    def __get_t(self) -> adafruit_gps.GPS:
         attempts = 0
         while attempts < 20:
             self.gps.update()
