@@ -18,7 +18,7 @@ class RadioInterface:
     def get_settings(self) -> tuple:
         return self.port, self.rate
 
-    async def listen(self, sleep: int = 1, debug: bool = False):
+    async def listen(self, sleep: int = .1, debug: bool = False):
         while True:
             xbee = self.xbee
 

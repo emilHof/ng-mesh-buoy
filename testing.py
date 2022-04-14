@@ -223,8 +223,6 @@ async def test_handle_block(debug: bool = False):
 
     await asyncio.gather(workers[0])
 
-    print("returned value")
-
     # out_rows = out[1]
     # reference_rows = reference_rows[1:]
 
@@ -242,7 +240,7 @@ async def test_handle_block(debug: bool = False):
 
 async def main():
     # await test_bulk_handling(["@5_get_bulk_turb", "--end"], debug=False)
-    await test_handle_block(debug=True)
+    await test_handle_block(debug=False)
 
 
 if __name__ == "__main__":
