@@ -1,5 +1,3 @@
-from collections import deque
-
 config = {
     "radio": {
         "port": None,
@@ -24,7 +22,6 @@ config = {
         "time_stamp": None,
         "time_last": None
     },
-    "dep_queue": deque([])
 }
 
 
@@ -42,10 +39,3 @@ def set_config(radio_dict, gps_dict, db_dict):
 def set_specific(target, target_setting, value):
     config[target][target_setting] = value
 
-
-def enqueue_dep_queue(item: str):
-    config["dep_queue"].append(item)
-
-
-def pop_dep_queue() -> str:
-    return config["dep_queue"].popleft()

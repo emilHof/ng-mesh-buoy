@@ -90,13 +90,14 @@ class DBInterface:
 
     """ read_db returns the specified amount of latest entries of a specified table """
 
-    def read_db(self, table, limit) -> list:
+    def read_db(self, table, limit, debug: bool = False) -> list:
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
         cursor.execute('SELECT * FROM ' + table + ' ORDER BY id DESC LIMIT  ' + str(limit) + "")
         rows = cursor.fetchall()
-        for row in rows:
-            print(row)
+        if debug:
+            for row in rows:
+                print(row)
         return rows
 
     async def check_latest(self, tables: []):
