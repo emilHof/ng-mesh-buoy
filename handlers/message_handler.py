@@ -104,7 +104,7 @@ class MessageHandler:
 
         while fail_counter < 2:  # range over the rows
             try:
-                row = await asyncio.wait_for(self.in_queue.get(), timeout=1)
+                row = await asyncio.wait_for(self.in_queue.get(), timeout=2)
             except asyncio.TimeoutError:
                 fail_counter += 1
                 continue
