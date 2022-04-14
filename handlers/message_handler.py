@@ -45,10 +45,10 @@ class MessageHandler:
         rows = self.get_bulk_data(cmd, debug=debug)  # get the data from the db
 
         # send back a leading packet indicating a packet block and its size, sleep for 1.5 sec between packets
-        self.dep_queue.put_nowait((f'@inc_block', 1.5))
+        self.dep_queue.put_nowait((f'@inc_block', 2))
 
         for row in reversed(rows):  # send back all the rows in their separate packets
-            self.dep_queue.put_nowait((row, .2))  # send back the row, sleep for .2 sec between packets
+            self.dep_queue.put_nowait((row, .25))  # send back the row, sleep for .2 sec between packets
             if debug: print(f'row put in the dep_queue: {row}')
 
     """ get_bulk_data fetches a specific set of database data """
