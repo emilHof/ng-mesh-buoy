@@ -6,7 +6,7 @@ import config.config as config
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface, time_dif_gps, get_time_sync
 from interfaces.database import DBInterface
-from handlers.message_handler import MessageHandler
+from handlers.message_handler import MessageHandler, check_dep_queue
 
 
 def db_fetch_test():
@@ -91,19 +91,28 @@ async def bulk_radio_fetch_test(n, k):
     trans_time = stop - start
 
     if avg_dif > 2.5:
-        print("bulk_radio_fetch_test test failed with on average "
-              + str(avg_dif) +
-              " packets dropped in " + str(trans_time) + " time")
+        print("bulk_radio_fetch_test test FAILED with an average of"
+              " {} packets dropped in {} seconds".format(str(avg_dif), str(trans_time.seconds)))
 
-    print("bulk_radio_fetch_test test passed with on average "
-          + str(avg_dif) +
-          " packets dropped in " + str(trans_time.seconds) + " seconds")
+    print("bulk_radio_fetch_test test PASSED with an average of"
+          " {} packets dropped in {} seconds".format(str(avg_dif), str(trans_time.seconds)))
+
+
+def test_dep_queue(test_array: []):
+    for i in test_array:
+        config.enqueue_dep_queue(i)
+
+    messages = check_dep_queue()
+
+    for i in range(len(test_array)):
+        if messages[i] != test_array[i]:
+            print("test_dep_queue FAILED. {} does not equal {}".format(messages[i], test_array[i]))
+
+    print("test_dep_queue PASSED")
 
 
 async def main():
-    # db_fetch_test()
-    # await time_stamp_test()
-    await bulk_radio_fetch_test(20, 1)
+    test_dep_queue(["2", "hello", "three"])
 
 
 if __name__ == "__main__":

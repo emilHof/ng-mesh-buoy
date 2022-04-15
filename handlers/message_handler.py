@@ -1,10 +1,19 @@
 import asyncio
 import time
 
+import config.config as config
 from interfaces.database import DBInterface
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface, get_time_sync
-from interfaces.temp import TempInterface
+
+
+def check_dep_queue():
+    messages = []
+
+    while len(config.config["dep_queue"]) > 0:
+        messages.append(config.pop_dep_queue())
+
+    return messages
 
 
 class MessageHandler:
@@ -29,6 +38,7 @@ class MessageHandler:
         self.radio = RadioInterface()
 
     """ handle_message takes a message string that started with an @ and performs logic on it """
+
     async def handle_message(self, message: str) -> str:
         return_message = ""
         if message.find("get_location") != -1:
@@ -62,6 +72,7 @@ class MessageHandler:
         return ""
 
     """ get_bulk_data fetches a specific set of database data """
+
     def get_bulk_data(self, message):
         # find the index of the first length delimiter
         size_index = message.index("get_bulk_") + len("get_bulk_")
@@ -109,6 +120,7 @@ class MessageHandler:
         return return_rows
 
     """ handle_block takes a block of related messages and stores them in an array """
+
     async def handle_block(self, message, debug: bool) -> []:
 
         print("listening in block")
@@ -136,33 +148,37 @@ class MessageHandler:
 
             rows.append(row)  # append row if data was received
 
-        # if debug:
-        #     for row in rows:  # print the rows when all are finalized
-        #         print(row)
+        if debug:
+            for row in rows:  # print the rows when all are finalized
+                print(row)
 
         self.propagate = True
 
         return rows
 
     """ propagate_message is a loop function that listens for incoming message """
+
     async def propagate_message(self, debug: bool):
         while True:
             while self.propagate:  # set self.propagate to false, to pause listening
-                message = await self.radio.listen_async()
 
-                if message.startswith("@"):
-                    err = await self.handle_message(message)
+                rows = check_dep_queue()  # first check if there is any new entries to the departure queue
+                for row in rows:
+                    self.radio.send_back(row)
 
-                    if err is not None:
-                        print(err)
+                message = await self.radio.listen_async_timed(sleep=1, tries=5)  # listen for new messages
 
-                elif message.startswith("#size_"):
-                    rows = await self.handle_block(message, debug)
-                    if debug:
-                        return rows
-
-                else:
-                    print("message was not handled!")
-                    print(message)
+                if message != "":  # check if a message was received
+                    if message.startswith("@"):  # if a message starts with an @ it is a command
+                        err = await self.handle_message(message)
+                        if err is not None:
+                            print(err)
+                    elif message.startswith("#size_"):  # if a message starts with a #size_ it is an incoming block
+                        rows = await self.handle_block(message, debug)
+                        if debug:
+                            return rows
+                    else:
+                        print("message was not handled!")
+                        print(message)
 
             await asyncio.sleep(10)
