@@ -53,25 +53,13 @@ db_setting = {
 
 
 async def main():
-    # config.set_specific("radio", "port", "/dev/ttyUSB2")
-    # config.set_specific("radio", "rate", 9600)
     config.set_specific("rfid", "port", "/dev/ttyACM0")
     config.set_specific("rfid", "rate", 9600)
     config.set_specific("db", "file", "local_data.db")
 
-    rfid = RFIDInterface()
+    rfid = RFIDInterface(False)
 
-    # xbee = RadioInterface()
-    # xbee.send_test_string("@ping xbee online")
-
-    # msg_handler = MessageHandler()
-
-    # xbee.send_test_string("@get_all_temp")
-
-    # stopped = await asyncio.gather(msg_handler.propagate_message(), gps.log_location_and_time())
-    # stopped = await msg_handler.propagate_message()
-
-    stopped = await rfid.check_rfid()
+    stopped = await rfid.check_rfid("turb")
 
     print(stopped)
 

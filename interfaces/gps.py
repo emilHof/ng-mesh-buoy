@@ -130,8 +130,6 @@ class GPSInterface(Port):
                 # Time & date from GPS information
                 print("Fix timestamp: {}".format(_format_datetime(self.gps.timestamp_utc)))
                 # Time & date from internal RTC
-                #        print("RTC timestamp: {}".format(_format_datetime(the_rtc.datetime)))
-                # Time & date from time.localtime() function
                 local_time = time.localtime()
                 print("Local time: {}".format(_format_datetime(local_time)))
                 # convert from string to bytes
@@ -156,21 +154,16 @@ class GPSInterface(Port):
 
     """ get_time returns the current gps time in string format """
     def get_time(self):
-        attempts = 0
-        utc_time = ""
-        while attempts < 20:
-            self.gps.update()
-            if not self.gps.has_fix:
-                print("waiting for fix...")
-                time.sleep(1)
-                attempts += 1
-                continue
-            utc_time = "{}".format(_format_datetime(self.gps.timestamp_utc))
-            attempts = 20
+        t = self.__get_t()
+        utc_time = "{}".format(_format_datetime(t))
+
         return utc_time
 
     """ get_time_non_conv returns a tm object with the current gps time """
     def get_time_non_conv(self):
+        return self.__get_t()
+
+    def __get_t(self) -> adafruit_gps.GPS:
         attempts = 0
         while attempts < 20:
             self.gps.update()
@@ -184,7 +177,7 @@ class GPSInterface(Port):
         return self.gps.timestamp_utc
 
     """ log_location_and_time continuously logs the location and time of the buoy asynchronously """
-    async def log_location_and_time(self):
+    async def log_location(self):
         self.db.gps_index += 1
         index = self.db.gps_index
         while True:
@@ -203,7 +196,7 @@ class GPSInterface(Port):
                 location = lat + " " + long
                 utc_time = "Local time: {}".format(_format_datetime(self.gps.timestamp_utc))
                 data = (index, location, utc_time)
-                err = self.db.write_loc_to_db(data)
+                err = self.db.write_data_to_db("loca", data)
                 if err is not None:
                     print(err)
                 index += 1
