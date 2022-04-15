@@ -34,6 +34,7 @@ async def main():
         msg_handler.handle_msg(),
         radio.listen(debug=True),
         radio.send(debug=True),
+
     )
 
     return "all async loops exited"
