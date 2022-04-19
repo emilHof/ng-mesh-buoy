@@ -51,12 +51,12 @@ class RadioInterface:
         while True:
             task = await self.dep_queue.get()  # get task from the dep_queue
 
-            if debug: print(f'sent message: {task[0]}')
-
             out_msg, sleep_time, time = task[0], task[1], task[2]  # get the msg and sleep time from the task item
 
             if time is not None:
                 out_msg = add_time(out_msg, time)
+
+            if debug: print(f'sent message: {out_msg}')
 
             xbee.open()
             xbee.send_data_broadcast(out_msg)
