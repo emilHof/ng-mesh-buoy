@@ -1,7 +1,7 @@
 import asyncio
 from inspect import iscoroutinefunction
 
-import config.config as config
+from config.config import config
 from interfaces.database import DBInterface
 from interfaces.gps import GPSInterface, get_time_sync
 
@@ -11,6 +11,8 @@ class MessageHandler:
         self.db = DBInterface()
         self.msg_handling = True
         self.hasGPS = gps
+        self.ni = config["NI"]["ni"]
+        self.msg_cache = {}
         self.in_queue = in_queue
         self.dep_queue = dep_queue
         self.function_dict = {
@@ -120,12 +122,19 @@ class MessageHandler:
             msg = await self.in_queue.get()
 
             if debug: print(f'handling message: {msg}')
-            n_i = msg[:2]
+            inc_ni = msg[2:4]
 
-            if msg.startswith("@"):
-                await self.handle_cmd(msg, debug=debug)
-            else:
-                self.dep_queue.put_nowait((msg, 0))
+            if msg not in self.msg_cache:  # check if a message has been received before
+                self.msg_cache[msg] = 1  # if not add current message to the cache and handle the message
+
+                if inc_ni == self.ni:  # if the target node is this node, handle the message
+                    msg = msg[5:]
+                    if msg.startswith("@"):  # handle as cmd if it is a command
+                        await self.handle_cmd(msg, debug=debug)
+                    else:  # otherwise, print the message to the screen
+                        print(msg)
+                else:  # if the target node is not this node, forward the message
+                    self.dep_queue.put_nowait((msg, 0))
 
             self.in_queue.task_done()
 
