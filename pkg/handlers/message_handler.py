@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 from inspect import iscoroutinefunction
 
 from config.config import config
@@ -7,17 +8,18 @@ from interfaces.gps import GPSInterface, get_time_sync
 
 
 class MessageHandler:
-    def __init__(self, in_queue: asyncio.Queue, dep_queue: asyncio.Queue, gps=False):
-        self.db = DBInterface()
+    def __init__(self, in_queue: asyncio.Queue, dep_queue: asyncio.Queue, print_queue: asyncio.Queue = None, gps=False):
+        self.db = DBInterface(dep_queue=dep_queue)
         self.msg_handling = True
         self.hasGPS = gps
         self.ni = config["NI"]["ni"]
         self.msg_cache = {}
         self.in_queue = in_queue
         self.dep_queue = dep_queue
+        self.print_queue = print_queue
         self.function_dict = {
             "get_location": self.get_location,
-            "get_time": self.get_time,
+            "get_time": self.send_time,
             "inc_block": self.handle_block
         }
 
@@ -30,6 +32,12 @@ class MessageHandler:
 
     """ handle_message takes a message string that started with an @ and performs logic on it """
 
+    def get_time(self):
+        if self.hasGPS:  # check if there is a gps connected
+            return get_time_sync().strftime("%H:%M:%S")
+        else:
+            return datetime.datetime.now().strftime("%H:%M:%S")
+
     def get_location(self):
         # check if there is a gps connected
         if self.hasGPS:
@@ -38,19 +46,22 @@ class MessageHandler:
             # add the return message to the departure queue
             self.dep_queue.put_nowait(("location: { " + location + " }", 0))
 
-    def get_time(self):
+    def send_time(self):
         # put the time into the departure queue
-        self.dep_queue.put_nowait(("t:01,utc time: " + get_time_sync().strftime("%H:%M:%S"), 0))
+        time = self.get_time()
+        self.dep_queue.put_nowait((f't:01,utc time: {time}', 0, time))
 
     def handle_bulk(self, cmd: str, debug: bool = False):
         if debug: print(f'handling bulk request: {cmd}')
         rows = self.get_bulk_data(cmd, debug=debug)  # get the data from the db
 
+        time = get_time_sync()
+
         # send back a leading packet indicating a packet block and its size, sleep for 1.5 sec between packets
-        self.dep_queue.put_nowait((f't:01,@inc_block', 2))
+        self.dep_queue.put_nowait((f't:01,@inc_block', 2, time))
 
         for row in reversed(rows):  # send back all the rows in their separate packets
-            self.dep_queue.put_nowait((row, .25))  # send back the row, sleep for .2 sec between packets
+            self.dep_queue.put_nowait((row, .25, time))  # send back the row, sleep for .2 sec between packets
             if debug: print(f'row put in the dep_queue: {row}')
 
     """ get_bulk_data fetches a specific set of database data """
@@ -100,6 +111,9 @@ class MessageHandler:
 
             if debug: print(f'row: {row}')
 
+            if self.print_queue is not None:
+                self.print_queue.put_nowait(row)
+
             if type(row) is not str:  # if too many messages are missed in a row the process is canceled
                 fail_counter += 1
 
@@ -126,15 +140,16 @@ class MessageHandler:
 
             if msg not in self.msg_cache:  # check if a message has been received before
                 self.msg_cache[msg] = 1  # if not add current message to the cache and handle the message
+                msg = msg[-6]
 
                 if inc_ni == self.ni:  # if the target node is this node, handle the message
                     msg = msg[5:]
-                    if msg.startswith("@"):  # handle as cmd if it is a command
+                    if msg.startswith("@"):  # handle as ui if it is a command
                         await self.handle_cmd(msg, debug=debug)
-                    else:  # otherwise, print the message to the screen
-                        print(msg)
+                    elif self.print_queue is not None:  # otherwise, print the message to the screen
+                        self.print_queue.put_nowait(msg)
                 else:  # if the target node is not this node, forward the message
-                    self.dep_queue.put_nowait((msg, 0))
+                    self.dep_queue.put_nowait((msg, 0, None))
 
             self.in_queue.task_done()
 
