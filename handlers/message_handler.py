@@ -40,14 +40,14 @@ class MessageHandler:
 
     def get_time(self):
         # put the time into the departure queue
-        self.dep_queue.put_nowait(("utc time: " + get_time_sync().strftime("%H:%M:%S"), 0))
+        self.dep_queue.put_nowait(("t:01,utc time: " + get_time_sync().strftime("%H:%M:%S"), 0))
 
     def handle_bulk(self, cmd: str, debug: bool = False):
         if debug: print(f'handling bulk request: {cmd}')
         rows = self.get_bulk_data(cmd, debug=debug)  # get the data from the db
 
         # send back a leading packet indicating a packet block and its size, sleep for 1.5 sec between packets
-        self.dep_queue.put_nowait((f'@inc_block', 2))
+        self.dep_queue.put_nowait((f't:01,@inc_block', 2))
 
         for row in reversed(rows):  # send back all the rows in their separate packets
             self.dep_queue.put_nowait((row, .25))  # send back the row, sleep for .2 sec between packets
