@@ -22,6 +22,9 @@ config = {
         "time_stamp": None,
         "time_last": None
     },
+    "NI": {
+        "ni": None
+    }
 }
 
 
