@@ -7,12 +7,13 @@ import sqlite3
 class DBInterface:
     """ __init__ is called on initialization of every new DBHandler """
 
-    def __init__(self):
+    def __init__(self, dep_queue: asyncio.Queue = None):
         parameters = config.config["db"]
         self.db_file = parameters["file"]
         self.make_tables()
         self.hasGPS = False
         self.gps = None
+        self.dep_queue = dep_queue
         indices = self.fetch_indices()
         self.gps_index = indices[0][0]
         self.temp_index = indices[1][0]
@@ -122,9 +123,9 @@ class DBInterface:
 
                     data_str = ""
                     for d in data:
-                        data_str += str(d)
+                        data_str += str(d) + ","
 
-                    config.enqueue_dep_queue(data_str)
+                    self.dep_queue.put_nowait(data_str)
                     last_indices[table] += 1
 
             await asyncio.sleep(5)
