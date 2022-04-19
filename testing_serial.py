@@ -1,10 +1,6 @@
 import serial
 import config.config as config
-from interfaces.radio import RadioInterface
-from interfaces.gps import GPSInterface
-from interfaces.database import DBInterface
 from interfaces.rfid import RFIDInterface
-from handlers.message_handler import MessageHandler
 import asyncio
 
 s = serial.Serial('/dev/ttyACM0', 9600)
