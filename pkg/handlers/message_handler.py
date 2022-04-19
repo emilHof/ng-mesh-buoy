@@ -140,10 +140,9 @@ class MessageHandler:
 
             if msg not in self.msg_cache:  # check if a message has been received before
                 self.msg_cache[msg] = 1  # if not add current message to the cache and handle the message
-                msg = msg[-6]
 
                 if inc_ni == self.ni:  # if the target node is this node, handle the message
-                    msg = msg[5:]
+                    msg = msg[5:-6]
                     if msg.startswith("@"):  # handle as ui if it is a command
                         await self.handle_cmd(msg, debug=debug)
                     elif self.print_queue is not None:  # otherwise, print the message to the screen
