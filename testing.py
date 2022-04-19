@@ -1,13 +1,12 @@
 import asyncio
 import datetime
-import random
 import time
 
 import config.config as config
 from interfaces.radio import RadioInterface
 from interfaces.gps import GPSInterface, time_dif_gps, get_time_sync
 from interfaces.database import DBInterface
-from handlers.message_handler import MessageHandler
+from pkg.handlers.message_handler import MessageHandler
 
 
 def db_fetch_test():
