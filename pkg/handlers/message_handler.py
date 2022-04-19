@@ -55,7 +55,10 @@ class MessageHandler:
         if debug: print(f'handling bulk request: {cmd}')
         rows = self.get_bulk_data(cmd, debug=debug)  # get the data from the db
 
-        time = get_time_sync()
+        if self.hasGPS:
+            time = get_time_sync()
+        else:
+            time = datetime.datetime.now().strftime("%H:%M:%S")
 
         # send back a leading packet indicating a packet block and its size, sleep for 1.5 sec between packets
         self.dep_queue.put_nowait((f't:01,@inc_block', 2, time))

@@ -49,7 +49,9 @@ class RFIDInterface(Port):
                 rfid_entry = (index, rfid_sig[:-2], time)
                 sensor_entry = (index, sensor_data[:-2], time)
 
-                self.db.write_data_to_db("rfid", rfid_entry)
+                if rfid_sig != "None":
+                    self.db.write_data_to_db("rfid", rfid_entry)
+
                 self.db.write_data_to_db(sensor, sensor_entry)
                 print("committed new rfid data to the database: {}, at {}".format(rfid_sig[:-2], time))
                 print("committed new {} data to the database: {}, at {}".format(sensor, sensor_data[:-2], time))
