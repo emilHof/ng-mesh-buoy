@@ -22,7 +22,7 @@ db_setting = {
 
 async def main():
     config.set_config(radio_dict=radio_settings, gps_dict=gps_settings, db_dict=db_setting)
-
+    config.set_specific("NI", "ni", "01")
     in_queue = asyncio.Queue()
     dep_queue = asyncio.Queue()
 
