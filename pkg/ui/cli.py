@@ -42,7 +42,9 @@ class RadioCLI:
         self.dep_queue.put_nowait((user_input, 0, c_time))
 
     async def print_data(self):
+        print("-----------DATA-----------")
         while not self.print_queue.empty():
             print(self.print_queue.get_nowait())
 
             self.print_queue.task_done()
+        print("------------END!----------")

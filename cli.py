@@ -29,14 +29,14 @@ async def main():
     print_queue = asyncio.Queue()
 
     radio = RadioInterface(in_queue, dep_queue)
-    msg_handler = MessageHandler(in_queue, dep_queue, gps=False)
+    msg_handler = MessageHandler(in_queue, dep_queue, print_queue, gps=False)
     cli = RadioCLI(dep_queue, print_queue)
 
     # set up an asynchronous loop to propagate messages and listen for rfid signals
     await asyncio.gather(
         msg_handler.handle_msg(),
-        radio.listen(debug=True),
-        radio.send(debug=True),
+        radio.listen(debug=False),
+        radio.send(debug=False),
         cli.cli()
     )
 
