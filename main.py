@@ -1,9 +1,8 @@
 import asyncio
 
 import config.config as config
-from interfaces.rfid import RFIDInterface
 from interfaces.radio import RadioInterface
-from handlers.message_handler import MessageHandler
+from pkg.handlers.message_handler import MessageHandler
 
 radio_settings = {
     "port": "/dev/ttyUSB2",
