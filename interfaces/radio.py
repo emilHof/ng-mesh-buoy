@@ -32,6 +32,7 @@ class RadioInterface:
         self.in_queue = in_queue
         self.dep_queue = dep_queue
         self.close_chan = close_chan
+        self.debug = debug
         if debug:
             print("xbee created!")
 
@@ -80,6 +81,7 @@ class RadioInterface:
             await asyncio.sleep(sleep_time)  # sleep for the indicated time
 
     def __send_callback(self, msg):
+        if self.debug: print(f'msg received: {msg.data.decode("utf8")}')
         self.in_queue.put_nowait(msg.data.decode("utf8"))
 
     def __register_callback(self):
@@ -99,7 +101,7 @@ class RadioInterface:
 
         self.xbee.close()
 
-    async def sender(self, debug: bool = False):
+    async def sender(self):
 
         while True:
             task = await self.dep_queue.get()  # get task from the dep_queue
@@ -109,7 +111,7 @@ class RadioInterface:
             if time is not None:  # check if there was any time passed with the msg
                 out_msg = add_hash(out_msg, time)
 
-            if debug: print(f'sent message: {out_msg}')
+            if self.debug: print(f'sent message: {out_msg}')
 
             try:
                 self.xbee.send_data_broadcast(out_msg)  # broadcast the msg
