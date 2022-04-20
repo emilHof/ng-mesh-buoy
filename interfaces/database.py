@@ -19,6 +19,12 @@ class DBInterface:
         self.temp_index = indices[1][0]
         self.turb_index = indices[2][0]
         self.rfid_index = indices[3][0]
+        self.accepted_tags = {
+            "loca",
+            "temp",
+            "turb",
+            "rfid",
+        }
 
     """ settings returns the current name of the .db file """
 
@@ -91,15 +97,17 @@ class DBInterface:
 
     """ read_db returns the specified amount of latest entries of a specified table """
 
-    def read_db(self, table, limit, debug: bool = False) -> list:
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute('SELECT * FROM ' + table + ' ORDER BY id DESC LIMIT  ' + str(limit) + "")
-        rows = cursor.fetchall()
-        if debug:
-            for row in rows:
-                print(row)
-        return rows
+    def read_db(self, table, limit, debug: bool = False) -> (list, str):
+        if table in self.accepted_tags:
+            con = sqlite3.connect(self.db_file)
+            cursor = con.cursor()
+            cursor.execute('SELECT * FROM ' + table + ' ORDER BY id DESC LIMIT  ' + str(limit) + "")
+            rows = cursor.fetchall()
+            if debug:
+                for row in rows:
+                    print(row)
+            return rows, None
+        return [], "error: table not in database"
 
     async def check_latest(self, tables: []):
         conn = sqlite3.connect(self.db_file)  # Connecting to sqlite
