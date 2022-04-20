@@ -27,18 +27,23 @@ async def main():
     in_queue = asyncio.Queue()
     dep_queue = asyncio.Queue()
     print_queue = asyncio.Queue()
+    close_chan = asyncio.Queue()
 
-    radio = RadioInterface(in_queue, dep_queue)
+    radio = RadioInterface(in_queue, dep_queue, close_chan)
     msg_handler = MessageHandler(in_queue, dep_queue, print_queue, gps=False)
     cli = RadioCLI(dep_queue, print_queue)
 
     # set up an asynchronous loop to propagate messages and listen for rfid signals
     await asyncio.gather(
         msg_handler.handle_msg(),
-        radio.listen(debug=False),
-        radio.send(debug=False),
+        radio.radio_open(),
+        radio.sender(),
         cli.cli()
     )
+
+    await dep_queue.join()
+    close_chan.put_nowait("close")
+    await in_queue.join()
 
     return "all async loops exited"
 
