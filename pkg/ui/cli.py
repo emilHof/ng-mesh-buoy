@@ -5,12 +5,28 @@ from prompt_toolkit.shortcuts import PromptSession
 from prompt_toolkit import prompt
 
 
+async def def_target():
+    session = PromptSession("To which node would you like to send? (eg: 02) ")
+
+    user_input = await session.prompt_async()
+
+    return user_input
+
+
+def make_cmd_message(msg: str, target: str) -> tuple:
+    c_time = datetime.datetime.now().strftime("%H:%M:%S")
+
+    comp_msg = f't:{target},{msg}'
+
+    return comp_msg, 0, c_time
+
+
 class RadioCLI:
     def __init__(self, dep_queue: asyncio.Queue, print_queue: asyncio.Queue):
         self.dep_queue = dep_queue
         self.print_queue = print_queue
         self.func_dict = {
-            "send-msg": self.send_msg,
+            "send-msg": self.__send_msg,
             "print-data": self.print_data
         }
 
@@ -32,14 +48,15 @@ class RadioCLI:
                 except (EOFError, KeyboardInterrupt):
                     return
 
-    async def send_msg(self):
+    async def __send_msg(self):
         session = PromptSession("Type your message: ")
 
         user_input = await session.prompt_async()
+        target = await def_target()
 
-        c_time = datetime.datetime.now().strftime("%H:%M:%S")
+        packet = make_cmd_message(user_input, target)
 
-        self.dep_queue.put_nowait((user_input, 0, c_time))
+        self.dep_queue.put_nowait(packet)
 
     async def print_data(self):
         print("-----------DATA-----------")
