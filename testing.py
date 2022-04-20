@@ -62,42 +62,6 @@ async def time_stamp_test():
     print("test passed!")
 
 
-async def bulk_radio_fetch_test(n, k):
-    config.set_specific("radio", "port", "/dev/ttyUSB2")
-    config.set_specific("radio", "rate", 9600)
-    config.set_specific("db", "file", "local_data.db")
-
-    xbee = RadioInterface()
-    msg_handler = MessageHandler(gps=False, radio=True)
-    msg_handler.connect_radio()
-
-    avg_dif = float(0.0)
-
-    start = datetime.datetime.now()
-
-    while k != 0:
-        xbee.send_test_string("@rturb_get_bulk_" + str(n) + "_")
-        rows = await msg_handler.propagate_message(debug=True)
-
-        dif = float(n - len(rows))
-        avg_dif = (avg_dif + dif) / 2
-
-        k -= 1
-
-        time.sleep(3)
-
-    stop = datetime.datetime.now()
-
-    trans_time = stop - start
-
-    if avg_dif > 2.5:
-        print("bulk_radio_fetch_test test FAILED with an average of"
-              " {} packets dropped in {} seconds".format(str(avg_dif), str(trans_time.seconds)))
-
-    print("bulk_radio_fetch_test test PASSED with an average of"
-          " {} packets dropped in {} seconds".format(str(avg_dif), str(trans_time.seconds)))
-
-
 async def test_message_handling(test_packet: list, debug: bool = False):
     config.set_specific("db", "file", "local_data.db")
 
