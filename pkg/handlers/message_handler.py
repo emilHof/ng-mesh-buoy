@@ -194,7 +194,7 @@ class MessageHandler:
         if debug: print(f'the command is: {cmd}')
 
         try:
-            if not self.__find_func(cmd):
+            if not await self.__find_func(cmd):
                 if cmd.index("_get_bulk_") != -1:
                     if debug: print(f'the command is being handled as a bulk request')
                     self.__handle_bulk(cmd, debug=debug)
