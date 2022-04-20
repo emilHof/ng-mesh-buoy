@@ -44,15 +44,15 @@ class MessageHandler:
         # check if there is a gps connected
         if self.hasGPS:
             location = self.gps.get_location()
-
+            time = self.__get_time()
             # add the return message to the departure queue
-            self.dep_queue.put_nowait(("location: { " + location + " }", 0))
+            self.dep_queue.put_nowait(("t:00,location: { " + location + " }", 0, time))
 
     def __send_time(self):
         """ send_time puts the local time in the dep_queue """
         # put the time into the departure queue
         time = self.__get_time()
-        self.dep_queue.put_nowait((f't:01,utc time: {time}', 0, time))
+        self.dep_queue.put_nowait((f't:00,utc time: {time}', 0, time))
 
     def __handle_bulk(self, cmd: str, debug: bool = False):
         """ handle_bulk is triggered when a request for bulk data is received """
@@ -65,10 +65,10 @@ class MessageHandler:
             time = datetime.datetime.now().strftime("%H:%M:%S")
 
         # send back a leading packet indicating a packet block and its size, sleep for 1.5 sec between packets
-        self.dep_queue.put_nowait((f't:01,@inc_block', 2, time))
+        self.dep_queue.put_nowait((f't:00,@inc_block', .5, time))
 
         for row in reversed(rows):  # send back all the rows in their separate packets
-            self.dep_queue.put_nowait((row, .25, time))  # send back the row, sleep for .2 sec between packets
+            self.dep_queue.put_nowait((row, 0, time))  # send back the row, sleep for .2 sec between packets
             if debug: print(f'row put in the dep_queue: {row}')
 
     """ get_bulk_data fetches a specific set of database data """
