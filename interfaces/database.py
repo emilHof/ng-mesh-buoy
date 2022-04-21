@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 
 import config.config as config
 import sqlite3
@@ -13,6 +14,7 @@ class DBInterface:
         self.make_tables()
         self.hasGPS = False
         self.gps = None
+        self.check_for_entry = True
         self.dep_queue = dep_queue
         indices = self.fetch_indices()
         self.gps_index = indices[0][0]
@@ -88,6 +90,7 @@ class DBInterface:
         return result
 
     """ write_data_to_db writes the passed tuple to the indicated table in the database"""
+
     def write_data_to_db(self, table: str, new_entry: tuple):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
@@ -122,18 +125,23 @@ class DBInterface:
         last_indices = {table: indices[table] for table in tables}
 
         while True:
-            for table in tables:
-                cursor.execute('''SELECT id from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving Index
-                index = cursor.fetchone()
-                if index[0] > last_indices[table]:
-                    cursor.execute('''SELECT * from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving data
-                    data = cursor.fetchone()
+            while self.check_for_entry:
+                for table in tables:
+                    cursor.execute('''SELECT id from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving Index
+                    index = cursor.fetchone()
+                    if index[0] > last_indices[table]:
+                        cursor.execute('''SELECT * from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving data
+                        data = cursor.fetchone()
 
-                    data_str = ""
-                    for d in data:
-                        data_str += str(d) + ","
+                        data_str = ""
+                        for d in data:
+                            data_str += str(d) + ","
 
-                    self.dep_queue.put_nowait(data_str)
-                    last_indices[table] += 1
+                        time = datetime.datetime.now().strftime("%H:%M:%S")
+
+                        self.dep_queue.put_nowait((f't:00,{data_str}', 0, time))
+                        last_indices[table] += 1
+
+                await asyncio.sleep(5)
 
             await asyncio.sleep(5)
