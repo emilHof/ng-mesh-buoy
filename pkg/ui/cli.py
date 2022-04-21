@@ -33,7 +33,7 @@ class RadioCLI:
     async def cli(self):
         while True:
             # Create Prompt.
-            session = PromptSession("What would you like to do? (send-msg, wait-for-data, print-data) ")
+            session = PromptSession("What would you like to do? (type help for examples) ")
 
             # read the message the user want to send
             while True:
@@ -42,6 +42,11 @@ class RadioCLI:
 
                     if user_input in self.func_dict:
                         await self.func_dict[user_input]()
+                    elif user_input == "help":
+                        print("Sample commands:")
+                        print('\x1b[6;30;42m' + 'send-msg' + '\x1b[0m' + " (send a message)")
+                        print('\x1b[6;30;42m' + 'print-data' + '\x1b[0m' + " (print received data to the screen)")
+                        print('\x1b[6;30;42m' + 'q' + '\x1b[0m' + " (quit)")
                     elif user_input == "q":
                         exit(0)
 
