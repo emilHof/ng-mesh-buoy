@@ -8,8 +8,12 @@ from interfaces.gps import GPSInterface, get_time_sync
 
 
 class MessageHandler:
-    def __init__(self, in_queue: asyncio.Queue, dep_queue: asyncio.Queue, print_queue: asyncio.Queue = None, gps=False):
-        self.db = DBInterface(dep_queue=dep_queue)
+    def __init__(self, in_queue: asyncio.Queue, dep_queue: asyncio.Queue, print_queue: asyncio.Queue = None, db=None,
+                 gps=False):
+        if db is not None:
+            self.db = db
+        else:
+            self.db = DBInterface(dep_queue=dep_queue)
         self.msg_handling = True
         self.hasGPS = gps
         self.ni = config["NI"]["ni"]
@@ -64,6 +68,8 @@ class MessageHandler:
         else:
             time = datetime.datetime.now().strftime("%H:%M:%S")
 
+        self.db.check_for_entry = False
+
         # send back a leading packet indicating a packet block and its size, sleep for 1.5 sec between packets
         self.dep_queue.put_nowait((f't:00,@inc_block', .5, time))
 
@@ -71,7 +77,7 @@ class MessageHandler:
             self.dep_queue.put_nowait((row, 0, time))  # send back the row, sleep for .2 sec between packets
             if debug: print(f'row put in the dep_queue: {row}')
 
-    """ get_bulk_data fetches a specific set of database data """
+        self.db.check_for_entry = True
 
     def __get_bulk_data(self, message, debug: bool = False):
         """ __get_bulk_data parses a message to fetch data entries from the database """
@@ -152,7 +158,7 @@ class MessageHandler:
         self.msg_handling = True
         return rows
 
-    async def handle_msg(self, debug: bool = False) :
+    async def handle_msg(self, debug: bool = False):
         """ handle_msg is an async loop that reads from the input queue and handles the incoming messages """
         while True and self.msg_handling:
 
