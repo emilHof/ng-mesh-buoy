@@ -1,8 +1,11 @@
+import asyncio
+import json
+
 import digi.xbee.devices as devices
 import digi.xbee.exception
 
 import config.config as config
-import asyncio
+from pkg.msgs.msg_types import SimpleMessage
 
 
 def middle_of_hash(time: str) -> str:
@@ -44,6 +47,19 @@ class RadioInterface:
         if self.debug: print(f'msg received: {msg.data.decode("utf8")}')
         self.in_queue.put_nowait(msg.data.decode("utf8"))
 
+    def __send_callback_with_decode(self, m):
+        if self.debug: print(f'msg received: {m.data.decode("utf8")}')
+
+        msg_decoded = json.loads(m)
+        msg_obj = SimpleMessage(**msg_decoded)
+
+        self.in_queue.put_nowait(msg_obj)
+
+    def test_send_callback_with_decode(self, message: object):
+        marshaled = json.dumps(message, indent=4)
+        packet = MockPacket(marshaled)
+        self.in_queue.put_nowait(packet)
+
     def __register_callback(self):
         self.xbee.add_data_received_callback(self.__send_callback)
 
@@ -81,3 +97,11 @@ class RadioInterface:
             self.dep_queue.task_done()  # mark the msg as sent
 
             await asyncio.sleep(sleep_time)  # sleep for the indicated time
+
+
+class MockPacket:
+    def __init__(self, data: str):
+        self.data = bytes(data)
+
+    def decode(self, encoding: str) -> str:
+        return str(self.data)
