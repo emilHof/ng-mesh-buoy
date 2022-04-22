@@ -1,8 +1,9 @@
 import asyncio
 import datetime
+import sqlite3
 
 import config.config as config
-import sqlite3
+from pkg.msgs.msg_types import SimpleMessage
 
 
 class DBInterface:
@@ -139,7 +140,8 @@ class DBInterface:
 
                         time = datetime.datetime.now().strftime("%H:%M:%S")
 
-                        self.dep_queue.put_nowait((f't:00,{data_str}', 0, time))
+                        packet = SimpleMessage("00", f't:00,{data_str}', time)
+                        self.dep_queue.put_nowait(packet)
                         last_indices[table] += 1
 
                 await asyncio.sleep(5)

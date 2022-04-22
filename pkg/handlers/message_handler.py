@@ -5,6 +5,7 @@ from inspect import iscoroutinefunction
 from config.config import config
 from interfaces.database import DBInterface
 from interfaces.gps import GPSInterface, get_time_sync
+from pkg.msgs.msg_types import SimpleMessage
 
 
 class MessageHandler:
@@ -50,13 +51,15 @@ class MessageHandler:
             location = self.gps.get_location()
             time = self.__get_time()
             # add the return message to the departure queue
-            self.dep_queue.put_nowait(("t:00,location: { " + location + " }", 0, time))
+            packet = SimpleMessage("00", f"location: {location}", time)
+            self.dep_queue.put_nowait(packet)
 
     def __send_time(self):
         """ send_time puts the local time in the dep_queue """
         # put the time into the departure queue
         time = self.__get_time()
-        self.dep_queue.put_nowait((f't:00,utc time: {time}', 0, time))
+        packet = SimpleMessage("00", f't:00,utc time: {time}', time)
+        self.dep_queue.put_nowait(packet)
 
     def __handle_bulk(self, cmd: str, debug: bool = False):
         """ handle_bulk is triggered when a request for bulk data is received """
@@ -71,10 +74,12 @@ class MessageHandler:
         self.db.check_for_entry = False
 
         # send back a leading packet indicating a packet block and its size, sleep for 1.5 sec between packets
-        self.dep_queue.put_nowait((f't:00,@inc_block', .5, time))
+        lead_packet = SimpleMessage("00", "@inc_block", time)
+        self.dep_queue.put_nowait(lead_packet)
 
         for row in reversed(rows):  # send back all the rows in their separate packets
-            self.dep_queue.put_nowait((row, 0, time))  # send back the row, sleep for .2 sec between packets
+            row_packet = SimpleMessage("00", row, time)
+            self.dep_queue.put_nowait(row_packet)  # send back the row, sleep for .2 sec between packets
             if debug: print(f'row put in the dep_queue: {row}')
 
         self.db.check_for_entry = True
@@ -132,9 +137,15 @@ class MessageHandler:
 
         while fail_counter < 2:  # range over the rows
             try:
-                row = await asyncio.wait_for(self.in_queue.get(), timeout=2)
+                row_packet: SimpleMessage = await asyncio.wait_for(self.in_queue.get(), timeout=2)
             except asyncio.TimeoutError:
                 fail_counter += 1
+                continue
+
+            if row_packet.ni == self.ni:
+                row = row_packet.msg
+            else:
+                self.in_queue.task_done()
                 continue
 
             if debug: print(f'row: {row}')
@@ -162,26 +173,18 @@ class MessageHandler:
         """ handle_msg is an async loop that reads from the input queue and handles the incoming messages """
         while True and self.msg_handling:
 
-            msg = await self.in_queue.get()  # wait for a message to be put into the queue
+            msg_obj: SimpleMessage = await self.in_queue.get()  # wait for a message to be put into the queue
 
-            if debug: print(f'handling message: {msg}')
+            if debug: print(f'handling message: {msg_obj.msg}')
 
-            if msg not in self.msg_cache:  # check if a message has been received before
-                self.msg_cache[msg] = 1  # if not add current message to the cache and handle the message
+            if msg_obj not in self.msg_cache:  # check if a message has been received before
+                self.msg_cache[msg_obj] = 1  # if not add current message to the cache and handle the message
 
-                try:
-                    inc_ni = msg[2:4]  # get the target node id of the incoming message
-                except IndexError as error:
-                    print(error)
-                    continue
+                inc_ni = msg_obj.ni  # get the target node id of the incoming message
 
                 if inc_ni == self.ni:  # if the target node is this node, handle the message
 
-                    try:
-                        msg = msg[5:-7]
-                    except IndexError as error:
-                        print(error)
-                        continue
+                    msg = msg_obj.msg
 
                     if msg.startswith("@"):  # handle as ui if it is a command
                         await self.__handle_cmd(msg, debug=debug)
@@ -189,7 +192,7 @@ class MessageHandler:
                         self.print_queue.put_nowait(msg)
 
                 else:  # if the target node is not this node, forward the message
-                    self.dep_queue.put_nowait((msg, 0, None))
+                    self.dep_queue.put_nowait(msg_obj)
 
             self.in_queue.task_done()
 
@@ -197,7 +200,7 @@ class MessageHandler:
 
         cmd = msg.split("@")[1]
 
-        if debug: print(f'the command is: {cmd}')
+        if debug: print(f't he command is: {cmd}')
 
         try:
             if not await self.__find_func(cmd):

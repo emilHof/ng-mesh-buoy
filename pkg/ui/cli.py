@@ -2,7 +2,8 @@ import asyncio
 import datetime
 
 from prompt_toolkit.shortcuts import PromptSession
-from prompt_toolkit import prompt
+
+from pkg.msgs.msg_types import SimpleMessage
 
 
 async def def_target():
@@ -13,12 +14,12 @@ async def def_target():
     return user_input
 
 
-def make_cmd_message(msg: str, target: str) -> tuple:
+def make_cmd_message(msg: str, target: str) -> SimpleMessage:
     c_time = datetime.datetime.now().strftime("%H:%M:%S")
 
-    comp_msg = f't:{target},{msg}'
+    packet = SimpleMessage(target, msg, c_time)
 
-    return comp_msg, 0, c_time
+    return packet
 
 
 class RadioCLI:

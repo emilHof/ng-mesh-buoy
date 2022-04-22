@@ -2,7 +2,6 @@ import asyncio
 
 import config.config as config
 from interfaces.radio import RadioInterface
-from interfaces.rfid import RFIDInterface
 from pkg.handlers.message_handler import MessageHandler
 from pkg.ui.cli import RadioCLI
 
@@ -42,7 +41,7 @@ async def main():
         msg_handler.handle_msg(),
         rfid.check_rfid("temp"),  # make sure this works
         radio.radio_open(),
-        radio.sender(),
+        radio.sender_with_encode(),
         cli.cli()
     )
 
