@@ -1,143 +1,107 @@
-import digi.xbee.devices as devices
-import config.config as config
-import time
-from types import MethodType
 import asyncio
+import json
+
+import digi.xbee.devices as devices
+import digi.xbee.exception
+
+import config.config as config
+from pkg.msgs.msg_types import SimpleMessage
 
 
-# listening listens for an incoming radio signal with a blocking loop and call to .read_data()
-def listening(self):
-    print("listening...")
-    data = self.read_data()
-    message = data
-    if message is not None:
-        print("found a message")
-        return message.data.decode("utf8")
-    else:
-        print("no message found")
-        print("sleeping...")
-        time.sleep(3)
-        return self.listening()
+def middle_of_hash(time: str) -> str:
+    """ middle_of_hash returns the middle four characters of a hashed passed string """
+    hashed_time = str(hash(time))
+    return hashed_time[4:8]
 
 
-# listening listens for an incoming radio signal with a non-blocking loop and call to .read_data()
-async def listening_async(xbee):
-    print("listening...")
-    data = xbee.read_data()
-    message = data
-    if message is not None:
-        print("found a message")
-        return message.data.decode("utf8")
-    else:
-        print("no message found")
-        print("sleeping...")
-        await asyncio.sleep(3)
-        return xbee.listening()
-
-
-async def listening_async_timed(xbee, sleep, tries):
-    print("listening...")
-    data = xbee.read_data()
-    message = data
-
-    while tries >= 0:
-        if message is not None:
-            print("found a message")
-            return message.data.decode("utf8")
-        else:
-            tries -= 1
-            await asyncio.sleep(sleep)
-            return xbee.listening()
-
-    return None
+def add_hash(out_msg: str, time: str) -> str:
+    """ add_hash takes two strings, concatenating the second's hash to the first """
+    hashed_time = middle_of_hash(time)
+    return f'{out_msg},h:{hashed_time}'
 
 
 class RadioInterface:
-
     """ __init__ is called on initialization of every new RadioInterface """
-    def __init__(self):
+
+    def __init__(
+            self, in_queue: asyncio.Queue,
+            dep_queue: asyncio.Queue,
+            close_chan: asyncio.Queue,
+            debug: bool = False
+    ):
         radio = config.config["radio"]  # gets the radio parameters from the config file
         self.port, self.rate = radio["port"], radio["rate"]  # initializes them as attributes
         self.xbee = devices.XBeeDevice(self.port, self.rate)  # creates a new xbee device as a RadioInterface attribute
+        self.in_queue = in_queue
+        self.dep_queue = dep_queue
+        self.close_chan = close_chan
+        self.debug = debug
+        if debug:
+            print("xbee created!")
 
-    """ print_settings returns a tuple with the parameters of your RadioInterface """
     def get_settings(self) -> tuple:
+        """ get_settings returns a tuple with the parameters of your RadioInterface """
         return self.port, self.rate
 
-    """ 
-    a blocking loop that continues until the xbee receives a message
-    returns a string
-    """
-    def listen(self) -> str:
-        xbee = self.xbee
-        xbee.listening = MethodType(listening, xbee)
-        xbee.open()
-        message = xbee.listening()
-        xbee.close()
-        return message
+    def __send_callback(self, msg):
+        if self.debug: print(f'msg received: {msg.data.decode("utf8")}')
+        self.in_queue.put_nowait(msg.data.decode("utf8"))
 
-    def send_back(self, message: str):
-        xbee = self.xbee
-        xbee.open()
-        xbee.send_data_broadcast(message)
-        xbee.close()
+    def __send_callback_with_decode(self, m):
+        if self.debug: print(f'msg received: {m.data.decode("utf8")}')
 
-    def send_test_string(self, message: str):
-        xbee = self.xbee
-        xbee.open()
-        xbee.send_data_broadcast(message)
-        xbee.close()
+        msg_decoded = json.loads(m)
+        msg_obj = SimpleMessage(**msg_decoded)
 
-    """ 
-    listen_async opens the xbee connection and awaits listening_async until a message is received
-    returns a string of data
-     """
-    async def listen_async(self) -> str:
-        xbee = self.xbee
-        xbee.open()
-        message = await self.listening_async()
-        xbee.close()
-        return message
+        self.in_queue.put_nowait(msg_obj)
 
-    async def listen_async_timed(self, sleep, tries) -> str:
-        xbee = self.xbee
-        xbee.open()
-        message = await self.listening_async_limited(sleep, tries)
-        xbee.close()
-        return message
+    def test_send_callback_with_decode(self, message: object):
+        marshaled = json.dumps(message, indent=4)
+        packet = MockPacket(marshaled)
+        self.in_queue.put_nowait(packet)
 
-    """
-    listening_async listens for an incoming radio signal with a non-blocking loop
-    returns a string of the data 
-    """
-    async def listening_async(self) -> str:
-        xbee = self.xbee
+    def __register_callback(self):
+        self.xbee.add_data_received_callback(self.__send_callback)
 
-        message = xbee.read_data()
-        print("listening")
+    def __deregister_callback(self):
+        self.xbee.del_data_received_callback(self.__send_callback)
 
-        while message is None:
-            print("no message found")
-            await asyncio.sleep(3)
-            message = xbee.read_data()
+    async def radio_open(self):
+        self.xbee.open()
 
-        print("message found")
-        return message.data.decode("utf8")
+        self.__register_callback()
 
-    async def listening_async_limited(self, timeout, tries) -> str:
-        xbee = self.xbee
+        await self.close_chan.get()
 
-        message = xbee.read_data()
-        print("listening")
+        self.__deregister_callback()
 
-        while message is None:
-            if tries < 1:
-                return ""
-            print("no message found")
-            await asyncio.sleep(timeout)
-            message = xbee.read_data()
-            tries -= 1
+        self.xbee.close()
 
-        print("message found")
-        return message.data.decode("utf8")
+    async def sender(self):
 
+        while True:
+            task = await self.dep_queue.get()  # get task from the dep_queue
+
+            out_msg, sleep_time, time = task[0], task[1], task[2]  # get the msg and sleep time from the task item
+
+            if time is not None:  # check if there was any time passed with the msg
+                out_msg = add_hash(out_msg, time)
+
+            if self.debug: print(f'sent message: {out_msg}')
+
+            try:
+                self.xbee.send_data_broadcast(out_msg)  # broadcast the msg
+            except digi.xbee.exception.TransmitException as error:
+                print(error)
+
+            self.dep_queue.task_done()  # mark the msg as sent
+
+            await asyncio.sleep(sleep_time)  # sleep for the indicated time
+
+
+class MockPacket:
+    def __init__(self, data: str):
+        self.data = bytes(data)
+
+    def decode(self, encoding: str) -> str:
+        return str(self.data)

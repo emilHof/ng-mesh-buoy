@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 
 import config.config as config
 import sqlite3
@@ -7,17 +8,25 @@ import sqlite3
 class DBInterface:
     """ __init__ is called on initialization of every new DBHandler """
 
-    def __init__(self):
+    def __init__(self, dep_queue: asyncio.Queue = None):
         parameters = config.config["db"]
         self.db_file = parameters["file"]
         self.make_tables()
         self.hasGPS = False
         self.gps = None
+        self.check_for_entry = True
+        self.dep_queue = dep_queue
         indices = self.fetch_indices()
         self.gps_index = indices[0][0]
         self.temp_index = indices[1][0]
         self.turb_index = indices[2][0]
         self.rfid_index = indices[3][0]
+        self.accepted_tags = {
+            "loca",
+            "temp",
+            "turb",
+            "rfid",
+        }
 
     """ settings returns the current name of the .db file """
 
@@ -31,7 +40,7 @@ class DBInterface:
         cursor = con.cursor()
 
         create_gps_data_format = """CREATE TABLE IF NOT EXISTS
-                                   location_and_time(id INTEGER, location TEXT, time TEXT)"""
+                                   loca(id INTEGER, loca TEXT, time TEXT)"""
 
         create_temp_data_format = """CREATE TABLE IF NOT EXISTS
                                     temp(id INTEGER, temp TEXT, time TEXT)"""
@@ -55,7 +64,7 @@ class DBInterface:
         conn = sqlite3.connect(self.db_file)  # Connecting to sqlite
         cursor = conn.cursor()  # Creating a cursor object using the cursor() method
 
-        cursor.execute('''SELECT id from location_and_time ORDER BY id DESC LIMIT 1''')  # Retrieving data
+        cursor.execute('''SELECT id from loca ORDER BY id DESC LIMIT 1''')  # Retrieving data
         gps_index = cursor.fetchone()  # Fetching 1st row from the table
 
         cursor.execute('''SELECT id from temp ORDER BY id DESC LIMIT 1''')  # Retrieving data
@@ -80,52 +89,28 @@ class DBInterface:
         result = [gps_index, temp_index, turb_index, rfid_index]
         return result
 
-    """ write_loc_to_db writes the passed tuple to the location and time table in the database"""
+    """ write_data_to_db writes the passed tuple to the indicated table in the database"""
 
-    def write_loc_to_db(self, new_entry: tuple):
+    def write_data_to_db(self, table: str, new_entry: tuple):
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
-        cursor.execute("""INSERT INTO location_and_time(id, location, time) VALUES(?, ?, ?)""", new_entry)
-        con.commit()
-        con.close()
-
-    """ write_temp_to_db writes the passed tuple to the temp table in the database"""
-
-    def write_temp_to_db(self, new_entry: tuple):
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute("""INSERT INTO temp(id, temp, time) VALUES(?, ?, ?)""", new_entry)
-        con.commit()
-        con.close()
-
-    """ write_turb_to_db writes the passed tuple to the rfid table in the database"""
-
-    def write_turb_to_db(self, new_entry: tuple):
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute("""INSERT INTO turb(id, turb, time) VALUES(?, ?, ?)""", new_entry)
-        con.commit()
-        con.close()
-
-    """ write_rfid_to_db writes the passed tuple to the rfid table in the database"""
-
-    def write_rfid_to_db(self, new_entry: tuple):
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute("""INSERT INTO rfid(id, rfid, time) VALUES(?, ?, ?)""", new_entry)
+        cursor.execute("""INSERT INTO {}(id, {}, time) VALUES(?, ?, ?)""".format(table, table), new_entry)
         con.commit()
         con.close()
 
     """ read_db returns the specified amount of latest entries of a specified table """
 
-    def read_db(self, table, limit) -> list:
-        con = sqlite3.connect(self.db_file)
-        cursor = con.cursor()
-        cursor.execute('SELECT * FROM ' + table + ' ORDER BY id DESC LIMIT  ' + str(limit) + "")
-        rows = cursor.fetchall()
-        for row in rows:
-            print(row)
-        return rows
+    def read_db(self, table, limit, debug: bool = False) -> (list, str):
+        if table in self.accepted_tags:
+            con = sqlite3.connect(self.db_file)
+            cursor = con.cursor()
+            cursor.execute('SELECT * FROM ' + table + ' ORDER BY id DESC LIMIT  ' + str(limit) + "")
+            rows = cursor.fetchall()
+            if debug:
+                for row in rows:
+                    print(row)
+            return rows, None
+        return [], "error: table not in database"
 
     async def check_latest(self, tables: []):
         conn = sqlite3.connect(self.db_file)  # Connecting to sqlite
@@ -140,18 +125,23 @@ class DBInterface:
         last_indices = {table: indices[table] for table in tables}
 
         while True:
-            for table in tables:
-                cursor.execute('''SELECT id from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving Index
-                index = cursor.fetchone()
-                if index[0] > last_indices[table]:
-                    cursor.execute('''SELECT * from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving data
-                    data = cursor.fetchone()
+            while self.check_for_entry:
+                for table in tables:
+                    cursor.execute('''SELECT id from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving Index
+                    index = cursor.fetchone()
+                    if index[0] > last_indices[table]:
+                        cursor.execute('''SELECT * from ''' + table + ''' ORDER BY id DESC LIMIT 1''')  # Retrieving data
+                        data = cursor.fetchone()
 
-                    data_str = ""
-                    for d in data:
-                        data_str += str(d)
+                        data_str = ""
+                        for d in data:
+                            data_str += str(d) + ","
 
-                    config.enqueue_dep_queue(data_str)
-                    last_indices[table] += 1
+                        time = datetime.datetime.now().strftime("%H:%M:%S")
 
-            await asyncio.sleep(3)
+                        self.dep_queue.put_nowait((f't:00,{data_str}', 0, time))
+                        last_indices[table] += 1
+
+                await asyncio.sleep(5)
+
+            await asyncio.sleep(5)

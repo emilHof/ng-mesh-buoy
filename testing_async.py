@@ -33,7 +33,7 @@ async def main():
     xbee = RadioInterface()
     # xbee.send_test_string("xbee online")
 
-    msg_handler = MessageHandler()
+    msg_handler = MessageHandler(gps=False, radio=True)
     msg_handler.connect_radio()
 
     # xbee.send_test_string("@get_all_temp")
@@ -41,8 +41,9 @@ async def main():
     # stopped = await asyncio.gather(msg_handler.propagate_message(), gps.log_location_and_time())
 
     xbee.send_test_string("@turb_get_bulk_10_")
+    # xbee.send_test_string("@get_location")
 
-    stopped = await msg_handler.propagate_message()
+    stopped = await msg_handler.propagate_message(debug=False)
 
     print(stopped)
 
