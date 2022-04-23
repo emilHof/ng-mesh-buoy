@@ -7,17 +7,17 @@ from pkg.msgs.msg_types import SimpleMessage
 
 
 class DBInterface:
-    """ __init__ is called on initialization of every new DBHandler """
+    """ DBInterface is an object containing the database connection and read/write operations """
 
     def __init__(self, dep_queue: asyncio.Queue = None):
         parameters = config.config["db"]
         self.db_file = parameters["file"]
-        self.make_tables()
+        self.__make_tables()
         self.hasGPS = False
         self.gps = None
         self.check_for_entry = True
         self.dep_queue = dep_queue
-        indices = self.fetch_indices()
+        indices = self.__fetch_indices()
         self.gps_index = indices[0][0]
         self.temp_index = indices[1][0]
         self.turb_index = indices[2][0]
@@ -32,11 +32,13 @@ class DBInterface:
     """ settings returns the current name of the .db file """
 
     def settings(self) -> str:
+        """ settings returns the current db_file """
         return self.db_file
 
     """ make all the tables for the database if they don't exist already """
 
-    def make_tables(self):
+    def __make_tables(self):
+        """ __make_table intializes the necessary tables if they do not exist already """
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
 
@@ -61,7 +63,8 @@ class DBInterface:
         con.commit()
         con.close()
 
-    def fetch_indices(self):
+    def __fetch_indices(self):
+        """ __fetch_indices sets the index attributes of each data table to the latest index """
         conn = sqlite3.connect(self.db_file)  # Connecting to sqlite
         cursor = conn.cursor()  # Creating a cursor object using the cursor() method
 
@@ -93,6 +96,9 @@ class DBInterface:
     """ write_data_to_db writes the passed tuple to the indicated table in the database"""
 
     def write_data_to_db(self, table: str, new_entry: tuple):
+        """
+        write_data_to_db is a public function that takes in a table name and a new entry tuple to write to the database
+        """
         con = sqlite3.connect(self.db_file)
         cursor = con.cursor()
         cursor.execute("""INSERT INTO {}(id, {}, time) VALUES(?, ?, ?)""".format(table, table), new_entry)
@@ -102,6 +108,9 @@ class DBInterface:
     """ read_db returns the specified amount of latest entries of a specified table """
 
     def read_db(self, table, limit, debug: bool = False) -> (list, str):
+        """
+        read_db takes a table and an amount specification, and then returns a list of corresponding entries
+        """
         if table in self.accepted_tags:
             con = sqlite3.connect(self.db_file)
             cursor = con.cursor()
@@ -114,6 +123,10 @@ class DBInterface:
         return [], "error: table not in database"
 
     async def check_latest(self, tables: []):
+        """
+        check_latest is an asynchronous loop that checks the passed tables for new entries. if a new entry is found,
+        it puts it into the dep_queue
+        """
         conn = sqlite3.connect(self.db_file)  # Connecting to sqlite
         cursor = conn.cursor()  # Creating a cursor object using the cursor() method
         indices = {
