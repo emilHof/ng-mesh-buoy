@@ -1,10 +1,18 @@
-## Buoy Mesh Network - JMU Engineering
+NGMesh API
+========
 
-A common code base for mesh network ready buoys.\
-This repository is undergoing a constant stream of updates. Feel free to check
-out a branch and jump right into building with us!
+The NGMesh API solves the problem of integrating Arduino based water quality sensors into
+a Python based mesh network. This is done by utilizing a number of unidirectional and bidirectional
+serial port interfaces. These are coordinated with the builtin [Asyncio](https://docs.python.org/3/library/asyncio.html)
+library to enable simultaneous acquisition and transaction of local data.
 
-## How to contribute?
+**To get started:**
+1. Clone the repository ------`git clone https://github.com/emilHof/ng-mesh-buoy.git`
+2. Install the requirements - `pip install -r requirements.txt`
+3. Set up your ports --------- `port = *your-port*, rate=*your-rate*`
+4. Launch the cli ------------- `python3 cli.py`
+
+## Features
 Clone the repository or any branch of the repository by typing:
 
 `git clone https://github.com/emilHof/ng-mesh-buoy.git`

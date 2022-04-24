@@ -5,6 +5,8 @@ adafruit-circuitpython-typing==1.2.0
 Adafruit-PlatformDetect==3.20.1
 Adafruit-PureIO==1.1.9
 digi-xbee==1.4.1
+prompt-toolkit==3.0.29
 pyftdi==0.53.3
 pyserial==3.5
 pyusb==1.2.1
+wcwidth==0.2.5
