@@ -22,12 +22,12 @@ For example, checking out the **section3-comms-dev** branch would look like this
 **Have fun making!**
 
 ```mermaid
-graph TD;
-  A[Remote Xbee] -- Msg -->B[RadioInterface];
+graph LR;
+  A[Remote Xbee] -- Msg -->B[RadioInterface</font>];
   B-- Puts recieved msgs in the in_queue -->C(In_Queue);
   C-- Reads items from the in_queue -->D[MessageHandler];
   D-- Puts alt-adressed msg in the dep_queue -->E(Dep_Queue);
-  D-- Executes any query cmds found in the msg -->F[DBHandler];
+  D-- Executes any query cmds found in the msg -->F[DBInterface];
   D-- Executes any location cmds found in the msg -->G[GPSInterface];
   F-- Returns query data -->D;
   G-- Returns location data -->D;
