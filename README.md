@@ -7,20 +7,27 @@ out a branch and jump right into building with us!
 ## How to contribute?
 Clone the repository or any branch of the repository by typing:
 
-`git clone https://github.com/emilHof/ng-mesh-buoy.git`
+```
+git clone https://github.com/emilHof/ng-mesh-buoy.git
+```
 
 to check out the main branch or,
 
-`git clone --branch <branch_name> https://github.com/emilHof/ng-mesh-buoy.git`
+```
+git clone --branch <branch_name> https://github.com/emilHof/ng-mesh-buoy.git
+```
 
 to check out a specific branch.\
 For example, checking out the **section3-comms-dev** branch would look like this:
 
-`git clone --branch section3-comms-dev https://github.com/emilHof/ng-mesh-buoy.git`
+```
+git clone --branch section3-comms-dev https://github.com/emilHof/ng-mesh-buoy.git
+```
 
 
 **Have fun making!**
 
+## Architecture
 ```mermaid
 graph LR;
   A[Remote Xbee] -- Msg -->B[RadioInterface</font>];
